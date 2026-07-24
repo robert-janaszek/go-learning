@@ -33,6 +33,11 @@ func (p *Player) Heal2(value int) {
 	p.Health += value
 }
 
+type User struct {
+	Name string
+	Age  *int
+}
+
 func day1c() {
 	// ex 16
 	player := Player{
@@ -64,4 +69,29 @@ func day1c() {
 	(*newPlayer).Health += 1
 
 	fmt.Println(newPlayer)
+
+	// ex 19
+
+	user1 := User{Name: "John"}
+	age := 40
+	user2 := User{Name: "Sophia", Age: &age}
+
+	fmt.Println(user1, user2)
+
+	// ex 20
+
+	slice := []Player{{}, {}}
+	fmt.Println(slice)
+
+	for i := 0; i <= len(slice); i++ {
+		if i == len(slice) {
+			// fmt.Println(slice[i]) - out of range
+		} else {
+			fmt.Println(slice[i])
+		}
+	}
+
+	for _, p := range slice {
+		fmt.Println(p)
+	}
 }
