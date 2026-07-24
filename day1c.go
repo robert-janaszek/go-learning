@@ -56,4 +56,12 @@ func day1c() {
 
 	fmt.Println(healedCopy) // 61 health
 	fmt.Println(player)     // 80 health
+
+	// ex 18
+	newPlayer := &Player{Name: "New", Health: 100}
+
+	newPlayer.Health += 20
+	(*newPlayer).Health += 1
+
+	fmt.Println(newPlayer)
 }
