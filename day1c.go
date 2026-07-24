@@ -92,6 +92,8 @@ func day1c() {
 	}
 
 	for _, p := range slice {
-		fmt.Println(p)
+		p.Health = 10 // works on copy, not reference
 	}
+
+	fmt.Println(slice)
 }
