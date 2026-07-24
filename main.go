@@ -61,4 +61,40 @@ func main() {
 	fmt.Println(Mon, Tue, Wed, Thu, Fri, Sat, Sun)
 	fmt.Println(Mon1, Tue1, Wed1, Thu1, Fri1, Sat1, Sun1)
 	fmt.Println(Mon2, Tue2, Wed2, Thu2, Fri2, Sat2, Sun2)
+
+	// ex 5
+	const a2 = 2
+	{
+		const a2 = 3
+		fmt.Println(a2)
+	}
+	fmt.Println(a2)
+
+	// ex 6
+	// const score = 100 - failure, can't take reference from constant
+	score := 100
+	ptr := &score
+
+	// ptr+1 - failure, can't move through pointers
+	fmt.Println(ptr, *ptr, *ptr+1)
+
+	// ex 7
+	fmt.Println("ex7")
+	*ptr++
+	fmt.Println(score) // 101
+
+	*ptr = *ptr + 100 - 1
+	fmt.Println(*ptr) // 200
+
+	secondScore := 300
+	*ptr = secondScore
+	*ptr = *ptr + 1
+
+	fmt.Println(score)       // 301
+	fmt.Println(secondScore) // 300
+
+	ptr = &secondScore
+	*ptr = *ptr + 1
+	fmt.Println(*ptr) // 301
+
 }
