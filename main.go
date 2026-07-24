@@ -97,4 +97,24 @@ func main() {
 	*ptr = *ptr + 1
 	fmt.Println(*ptr) // 301
 
+	// ex 8
+	fmt.Println("ex 8")
+	x := 100
+	pointer1 := &x
+	pointer2 := &x
+
+	*pointer2 += 2
+
+	fmt.Println(*pointer1, *pointer2, x) // 102 102 102
+
+	// ex 9
+	var p *int
+	fmt.Println(p == nil)
+	fmt.Println(p) // nil
+	// fmt.Println(*p) -- panic
+	// *p = 1 -- panic
+	a3 := 1
+	p = &a3
+	fmt.Println(*p) // 1
+
 }
