@@ -68,13 +68,13 @@ func (s *stack) close() string {
 	for len(s.stack) > 0 {
 		switch s.pop() {
 		case braceOpen:
-			enclosure.WriteString(string(braceClose))
+			enclosure.WriteByte(braceClose)
 		case squareBracketOpen:
-			enclosure.WriteString(string(squareBracketClose))
+			enclosure.WriteByte(squareBracketClose)
 		case stringOpen:
-			enclosure.WriteString("\"")
+			enclosure.WriteByte('"')
 		case backslash:
-			enclosure.WriteString("\\")
+			enclosure.WriteByte('\\')
 		}
 	}
 	return enclosure.String()
