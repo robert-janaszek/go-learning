@@ -28,6 +28,10 @@ func (s *stack) addSpecial(char byte) error {
 		if length == 0 { // string opened at 0 length
 			return errors.New("fatal, collection malformed")
 		}
+		if char == backslash {
+			s.append(char)
+			return nil
+		}
 		if char == stringOpen {
 			s.inString = false
 			s.pop()
@@ -85,7 +89,6 @@ func (s *stack) addSpecial(char byte) error {
 func (s *stack) close() string {
 	var enclosure string
 	for len(s.stack) > 0 {
-
 		switch s.pop() {
 		case braceOpen:
 			enclosure += string(braceClose)
@@ -93,6 +96,8 @@ func (s *stack) close() string {
 			enclosure += string(squareBracketClose)
 		case stringOpen:
 			enclosure += "\""
+		case backslash:
+			enclosure += "\\"
 		}
 	}
 	return enclosure
