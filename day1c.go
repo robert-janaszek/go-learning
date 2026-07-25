@@ -33,7 +33,7 @@ func (p *Player) Heal2(value int) {
 	p.Health += value
 }
 
-type User struct {
+type user struct {
 	Name string
 	Age  *int
 }
@@ -72,9 +72,9 @@ func day1c() {
 
 	// ex 19
 
-	user1 := User{Name: "John"}
+	user1 := user{Name: "John"}
 	age := 40
-	user2 := User{Name: "Sophia", Age: &age}
+	user2 := user{Name: "Sophia", Age: &age}
 
 	fmt.Println(user1, user2)
 
