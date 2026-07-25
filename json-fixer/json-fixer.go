@@ -1,5 +1,7 @@
 package jsonfixer
 
+// Fix appends missing ", }, ] (and a trailing \) so delimiters balance.
+// It does not produce fully valid JSON in all cases.
 func Fix(input string) (string, error) {
 	stk := stack{}
 	var err error
