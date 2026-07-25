@@ -3,7 +3,7 @@ package jsonfixer
 import "fmt"
 
 func PartialParse(input string) (string, error) {
-	heap := ParensQuoteHeap{}
+	heap := Stack{}
 	var err error
 
 	// for i := 0; i < len(input); i++ {
@@ -21,7 +21,7 @@ func PartialParse(input string) (string, error) {
 	lexer := Lexer{}
 	lexer.Start(input)
 
-	nextLexem := lexer.GetNextSpecialLexem()
+	nextLexem := lexer.Next()
 
 	for nextLexem != EOF {
 		err = heap.AddSpecial(nextLexem)
@@ -30,9 +30,9 @@ func PartialParse(input string) (string, error) {
 			return "", err
 		}
 
-		nextLexem = lexer.GetNextSpecialLexem()
+		nextLexem = lexer.Next()
 	}
-	fmt.Printf("%s\n", heap.heap)
+	fmt.Printf("%s\n", heap.stack)
 
 	return input, nil
 }

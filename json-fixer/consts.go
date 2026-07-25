@@ -1,7 +1,7 @@
 package jsonfixer
 
-const ParensOpen = '{'
-const ParensClose = '}'
-const SquareBracketOpen = '['
-const SquareBracketClose = ']'
-const StringOpen = '"'
+const braceOpen = '{'
+const braceClose = '}'
+const squareBracketOpen = '['
+const squareBracketClose = ']'
+const stringOpen = '"'

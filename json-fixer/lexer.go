@@ -12,19 +12,19 @@ func (l *Lexer) Start(input string) {
 	l.position = 0
 }
 
-func (l *Lexer) GetNextSpecialLexem() byte {
-	if l.position > len(l.input) {
+func (l *Lexer) Next() byte {
+	if l.position >= len(l.input) {
 		return EOF
 	}
 
 	for l.position < len(l.input) {
 		nextChar := l.input[l.position]
 
-		if nextChar == ParensOpen ||
-			nextChar == ParensClose ||
-			nextChar == SquareBracketOpen ||
-			nextChar == SquareBracketClose ||
-			nextChar == StringOpen {
+		if nextChar == braceOpen ||
+			nextChar == braceClose ||
+			nextChar == squareBracketOpen ||
+			nextChar == squareBracketClose ||
+			nextChar == stringOpen {
 			l.position++
 			return nextChar
 		}
