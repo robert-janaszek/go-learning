@@ -1,14 +1,19 @@
 package jsonfixer
 
-import "errors"
+import (
+	"errors"
+)
 
 type stack struct {
 	stack []byte
 }
 
-func (p *stack) pop() {
+func (p *stack) pop() byte {
 	length := len(p.stack)
+	lastChar := p.stack[length-1]
 	p.stack = p.stack[:length-1]
+
+	return lastChar
 }
 
 func (p *stack) append(item byte) {
@@ -51,4 +56,20 @@ func (p *stack) addSpecial(char byte) error {
 	}
 
 	return nil
+}
+
+func (p *stack) close() string {
+	var enclosure string
+	var popChar byte
+	for len(p.stack) > 0 {
+		popChar = p.pop()
+
+		switch popChar {
+		case braceOpen:
+			enclosure += string(braceClose)
+		case squareBracketOpen:
+			enclosure += string(squareBracketClose)
+		}
+	}
+	return enclosure
 }

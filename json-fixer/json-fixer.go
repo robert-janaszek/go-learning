@@ -1,7 +1,5 @@
 package jsonfixer
 
-import "fmt"
-
 func Fix(input string) (string, error) {
 	stk := stack{}
 	var err error
@@ -22,7 +20,9 @@ func Fix(input string) (string, error) {
 			return "", err
 		}
 	}
-	fmt.Printf("%s\n", stk.stack)
+	// fmt.Printf("%s\n", stk.stack)
 
-	return input, nil
+	suffix := stk.close()
+
+	return input + suffix, nil
 }

@@ -1,6 +1,10 @@
 package main
 
-import jsonfixer "github.com/robert-janaszek/go-learning/json-fixer"
+import (
+	"fmt"
+
+	jsonfixer "github.com/robert-janaszek/go-learning/json-fixer"
+)
 
 func main() {
 	// day1a()
@@ -10,5 +14,6 @@ func main() {
 	// day2b()
 	// day2c()
 
-	jsonfixer.Fix("{{{}[")
+	result, _ := jsonfixer.Fix("{{{}[")
+	fmt.Println(result)
 }
