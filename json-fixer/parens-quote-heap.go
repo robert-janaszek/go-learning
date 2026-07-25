@@ -18,6 +18,10 @@ func (p *ParensQuoteHeap) AddSpecial(char byte) error {
 		return errors.New("unexpected char at the beginning, found " + string(char))
 	}
 
+	if length == 0 {
+		return nil
+	}
+
 	lastChar := p.heap[len(p.heap)-1]
 	if lastChar == ParensOpen && char == ParensClose {
 		pop(&p.heap)

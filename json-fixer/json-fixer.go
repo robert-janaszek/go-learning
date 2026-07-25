@@ -1,5 +1,7 @@
 package jsonfixer
 
+import "fmt"
+
 func PartialParse(input string) (string, error) {
 	heap := ParensQuoteHeap{}
 	var err error
@@ -30,6 +32,7 @@ func PartialParse(input string) (string, error) {
 
 		nextLexem = lexer.GetNextSpecialLexem()
 	}
+	fmt.Printf("%s\n", heap.heap)
 
 	return input, nil
 }

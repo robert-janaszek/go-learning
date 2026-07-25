@@ -12,6 +12,25 @@ func (l *Lexer) Start(input string) {
 	l.position = 0
 }
 
-func (l Lexer) GetNextSpecialLexem() byte {
-	return 'a'
+func (l *Lexer) GetNextSpecialLexem() byte {
+	if l.position > len(l.input) {
+		return EOF
+	}
+
+	for l.position < len(l.input) {
+		nextChar := l.input[l.position]
+
+		if nextChar == ParensOpen ||
+			nextChar == ParensClose ||
+			nextChar == SquareBracketOpen ||
+			nextChar == SquareBracketClose ||
+			nextChar == StringOpen {
+			l.position++
+			return nextChar
+		}
+		l.position++
+
+	}
+
+	return EOF
 }
