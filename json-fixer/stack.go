@@ -2,43 +2,51 @@ package jsonfixer
 
 import "errors"
 
-type Stack struct {
+type stack struct {
 	stack []byte
 }
 
-func (p *Stack) AddSpecial(char byte) error {
+func (p *stack) pop() {
+	length := len(p.stack)
+	p.stack = p.stack[:length-1]
+}
+
+func (p *stack) append(item byte) {
+	p.stack = append(p.stack, item)
+}
+
+func (p *stack) addSpecial(char byte) error {
 	length := len(p.stack)
 
-	if length == 0 && (char == braceOpen || char == squareBracketOpen || char == stringOpen) {
-		p.stack = append(p.stack, char)
-		return nil
-	}
-
-	if length == 0 && (char == braceClose || char == squareBracketClose) {
-		return errors.New("unexpected char at the beginning, found " + string(char))
-	}
-
 	if length == 0 {
+		switch char {
+		case braceOpen, squareBracketOpen, stringOpen:
+			p.append(char)
+			return nil
+		case braceClose, squareBracketClose:
+			return errors.New("unexpected char at the beginning, found " + string(char))
+		}
+
 		return nil
 	}
 
 	lastChar := p.stack[len(p.stack)-1]
 	if lastChar == braceOpen && char == braceClose {
-		pop(&p.stack)
+		p.pop()
 		return nil
 	}
 
 	if lastChar == squareBracketOpen && char == squareBracketClose {
-		pop(&p.stack)
+		p.pop()
 		return nil
 	}
 
-	if char == braceOpen || char == squareBracketOpen {
-		p.stack = append(p.stack, char)
+	switch char {
+	case braceOpen, squareBracketOpen:
+		p.append(char)
 		return nil
-	}
 
-	if char == braceClose || char == squareBracketClose {
+	case braceClose, squareBracketClose:
 		return errors.New("unexpected char, found " + string(char))
 	}
 

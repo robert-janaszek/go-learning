@@ -10,5 +10,5 @@ func main() {
 	// day2b()
 	// day2c()
 
-	jsonfixer.PartialParse("{{{}[")
+	jsonfixer.Fix("{{{}[")
 }

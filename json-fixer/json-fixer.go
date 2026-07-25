@@ -2,37 +2,27 @@ package jsonfixer
 
 import "fmt"
 
-func PartialParse(input string) (string, error) {
-	heap := Stack{}
+func Fix(input string) (string, error) {
+	stk := stack{}
 	var err error
 
-	// for i := 0; i < len(input); i++ {
-	// 	err = heap.AddSpecial(input[i])
+	lexer := lexer{}
+	lexer.start(input)
 
-	// 	if err != nil {
-	// 		return "", err
-	// 	}
-	// }
+	for {
+		lex, ok := lexer.next()
 
-	// fmt.Printf("%s\n", heap.heap)
+		if !ok {
+			break
+		}
 
-	// return input, nil
-
-	lexer := Lexer{}
-	lexer.Start(input)
-
-	nextLexem := lexer.Next()
-
-	for nextLexem != EOF {
-		err = heap.AddSpecial(nextLexem)
+		err = stk.addSpecial(lex)
 
 		if err != nil {
 			return "", err
 		}
-
-		nextLexem = lexer.Next()
 	}
-	fmt.Printf("%s\n", heap.stack)
+	fmt.Printf("%s\n", stk.stack)
 
 	return input, nil
 }
