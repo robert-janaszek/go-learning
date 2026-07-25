@@ -14,6 +14,6 @@ func main() {
 	// day2b()
 	// day2c()
 
-	result, _ := jsonfixer.Fix("{{{}[")
+	result, _ := jsonfixer.Fix("{{{}[\"")
 	fmt.Println(result)
 }

@@ -20,7 +20,6 @@ func Fix(input string) (string, error) {
 			return "", err
 		}
 	}
-	// fmt.Printf("%s\n", stk.stack)
 
 	suffix := stk.close()
 
