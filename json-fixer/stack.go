@@ -1,7 +1,8 @@
 package jsonfixer
 
 import (
-	"errors"
+	"fmt"
+	"strings"
 )
 
 type stack struct {
@@ -16,7 +17,7 @@ func (s *stack) pop() byte {
 	return lastChar
 }
 
-func (s *stack) append(item byte) {
+func (s *stack) push(item byte) {
 	s.stack = append(s.stack, item)
 }
 
@@ -24,21 +25,21 @@ func (s *stack) addSpecial(char byte) error {
 	length := len(s.stack)
 
 	if char == backslash {
-		s.append(char)
+		s.push(char)
 		return nil
 	}
 
 	if length == 0 {
 		switch char {
 		case braceOpen, squareBracketOpen:
-			s.append(char)
+			s.push(char)
 			return nil
 
 		case braceClose, squareBracketClose:
-			return errors.New("unexpected char at the beginning, found " + string(char))
+			return fmt.Errorf("unexpected %q", string(char))
 
 		case stringOpen:
-			s.append(char)
+			s.push(char)
 			return nil
 		}
 
@@ -63,14 +64,14 @@ func (s *stack) addSpecial(char byte) error {
 			s.pop()
 			return nil
 		}
-		s.append(char)
+		s.push(char)
 		return nil
 	case braceOpen, squareBracketOpen:
-		s.append(char)
+		s.push(char)
 		return nil
 
 	case braceClose, squareBracketClose:
-		return errors.New("unexpected char, found " + string(char))
+		return fmt.Errorf("unexpected %q", string(char))
 
 	}
 
@@ -78,18 +79,19 @@ func (s *stack) addSpecial(char byte) error {
 }
 
 func (s *stack) close() string {
-	var enclosure string
+	var enclosure strings.Builder
+
 	for len(s.stack) > 0 {
 		switch s.pop() {
 		case braceOpen:
-			enclosure += string(braceClose)
+			enclosure.WriteString(string(braceClose))
 		case squareBracketOpen:
-			enclosure += string(squareBracketClose)
+			enclosure.WriteString(string(squareBracketClose))
 		case stringOpen:
-			enclosure += "\""
+			enclosure.WriteString("\"")
 		case backslash:
-			enclosure += "\\"
+			enclosure.WriteString("\\")
 		}
 	}
-	return enclosure
+	return enclosure.String()
 }
