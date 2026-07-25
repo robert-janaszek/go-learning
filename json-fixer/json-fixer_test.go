@@ -19,6 +19,8 @@ func TestFix(t *testing.T) {
 		`{"a\":`: `{"a\":"}`,
 		`"abc\`:  `"abc\\"`,
 		`"a\"b`:  `"a\"b"`,
+		`"\`:     `"\\"`,
+		`{"a\\`:  `{"a\\"}`,
 	}
 
 	for in, want := range cases {
