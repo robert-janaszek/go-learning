@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/robert-janaszek/go-learning/bank"
 )
 
 type Product struct {
@@ -80,4 +82,28 @@ func day2c() {
 
 	fmt.Println(cart.Total())
 
+	// ex 20
+
+	account := bank.Account{}
+	err = account.Deposit(150)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(account.Balance())
+
+	err = account.Withdraw(100)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = account.Withdraw(100)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(account.Balance())
+
+	// account.balance = 100 -- not allowed
 }
