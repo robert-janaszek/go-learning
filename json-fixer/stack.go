@@ -60,11 +60,9 @@ func (p *stack) addSpecial(char byte) error {
 
 func (p *stack) close() string {
 	var enclosure string
-	var popChar byte
 	for len(p.stack) > 0 {
-		popChar = p.pop()
 
-		switch popChar {
+		switch p.pop() {
 		case braceOpen:
 			enclosure += string(braceClose)
 		case squareBracketOpen:
