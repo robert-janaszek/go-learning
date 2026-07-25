@@ -23,56 +23,40 @@ func (s *stack) push(item byte) {
 
 func (s *stack) addSpecial(char byte) error {
 	length := len(s.stack)
-
-	if char == backslash {
-		s.push(char)
-		return nil
-	}
-
-	if length == 0 {
-		switch char {
-		case braceOpen, squareBracketOpen:
-			s.push(char)
-			return nil
-
-		case braceClose, squareBracketClose:
-			return fmt.Errorf("unexpected %q", string(char))
-
-		case stringOpen:
-			s.push(char)
-			return nil
-		}
-
-		return nil
-	}
-
-	lastChar := s.stack[len(s.stack)-1]
-
-	if lastChar == braceOpen && char == braceClose {
-		s.pop()
-		return nil
-	}
-
-	if lastChar == squareBracketOpen && char == squareBracketClose {
-		s.pop()
-		return nil
+	var lastChar byte
+	if length > 0 {
+		lastChar = s.stack[len(s.stack)-1]
 	}
 
 	switch char {
-	case stringOpen:
-		if s.stack[len(s.stack)-1] == stringOpen {
-			s.pop()
-			return nil
-		}
+	case backslash:
 		s.push(char)
 		return nil
 	case braceOpen, squareBracketOpen:
 		s.push(char)
 		return nil
+	case stringOpen:
+		if lastChar == stringOpen {
+			s.pop()
+			return nil
+		}
+		s.push(char)
+		return nil
 
-	case braceClose, squareBracketClose:
-		return fmt.Errorf("unexpected %q", string(char))
+	case braceClose:
+		if lastChar == braceOpen {
+			s.pop()
+			return nil
+		}
 
+		return fmt.Errorf("unexpected %q", char)
+	case squareBracketClose:
+
+		if lastChar == squareBracketOpen {
+			s.pop()
+			return nil
+		}
+		return fmt.Errorf("unexpected %q", char)
 	}
 
 	return nil
