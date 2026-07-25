@@ -30,6 +30,9 @@ func (l *lexer) next() (byte, bool) {
 			l.inString = !l.inString
 			return stringOpen, true
 		case braceOpen, braceClose, squareBracketOpen, squareBracketClose:
+			if l.inString {
+				continue
+			}
 			return nextChar, true
 		}
 	}

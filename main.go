@@ -14,6 +14,6 @@ func main() {
 	// day2b()
 	// day2c()
 
-	result, _ := jsonfixer.Fix(`"abc\`)
+	result, _ := jsonfixer.Fix(`{"a`)
 	fmt.Println(result)
 }

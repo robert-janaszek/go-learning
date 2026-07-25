@@ -5,8 +5,7 @@ import (
 )
 
 type stack struct {
-	stack    []byte
-	inString bool
+	stack []byte
 }
 
 func (s *stack) pop() byte {
@@ -24,19 +23,8 @@ func (s *stack) append(item byte) {
 func (s *stack) addSpecial(char byte) error {
 	length := len(s.stack)
 
-	if s.inString {
-		if length == 0 { // string opened at 0 length
-			return errors.New("fatal, collection malformed")
-		}
-		if char == backslash {
-			s.append(char)
-			return nil
-		}
-		if char == stringOpen {
-			s.inString = false
-			s.pop()
-		}
-
+	if char == backslash {
+		s.append(char)
 		return nil
 	}
 
@@ -51,7 +39,7 @@ func (s *stack) addSpecial(char byte) error {
 
 		case stringOpen:
 			s.append(char)
-			s.inString = true
+			return nil
 		}
 
 		return nil
@@ -71,8 +59,11 @@ func (s *stack) addSpecial(char byte) error {
 
 	switch char {
 	case stringOpen:
+		if s.stack[len(s.stack)-1] == stringOpen {
+			s.pop()
+			return nil
+		}
 		s.append(char)
-		s.inString = true
 		return nil
 	case braceOpen, squareBracketOpen:
 		s.append(char)
