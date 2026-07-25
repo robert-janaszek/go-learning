@@ -21,9 +21,18 @@ type Cart struct {
 	Items []CartItem
 }
 
-func (c *Cart) AddItem(p Product, qty int) {}
+func (c *Cart) AddItem(p Product, qty int) {
+	item := CartItem{Product: p, Quantity: qty}
+	c.Items = append(c.Items, item)
+}
 func (c Cart) Total() float64 {
-	return 0
+	var total float64 = 0
+
+	for _, item := range c.Items {
+		total += float64(item.Quantity) * (item.Product.Price - item.Product.Discount)
+	}
+
+	return total
 }
 
 func day2c() {
@@ -65,4 +74,10 @@ func day2c() {
 	fmt.Printf("%+v\n", p2)
 
 	// ex 19
+	cart := Cart{}
+	cart.AddItem(p1, 1)
+	cart.AddItem(p2, 3)
+
+	fmt.Println(cart.Total())
+
 }
