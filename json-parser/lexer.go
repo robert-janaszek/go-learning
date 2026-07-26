@@ -10,73 +10,6 @@ func (l *lexer) start(input string) {
 	l.position = 0
 }
 
-func (l *lexer) readString() (string, bool) {
-	ok := false
-	startingPosition := l.position
-	for l.position < len(l.input) {
-		char := l.input[l.position]
-		l.position++
-
-		// add skipping backslash
-
-		if char == '"' {
-			ok = true
-			break
-		}
-	}
-
-	if !ok {
-		return "", false
-	}
-
-	return l.input[startingPosition : l.position-1], true
-}
-
-func (l *lexer) readNumber() (string, bool) {
-	eConsumed := false
-	dotConsumed := false
-	startingPosition := l.position - 1
-
-	for l.position < len(l.input) {
-		char := l.input[l.position]
-		l.position++
-
-		if char >= '0' && char <= '9' {
-			continue
-		}
-
-		switch char {
-		case 'e', 'E':
-			if eConsumed {
-				return "", false
-			}
-
-			eConsumed = true
-
-			if l.position < len(l.input) {
-				nextChar := l.input[l.position]
-
-				switch nextChar {
-				case '-', '+':
-					l.position++
-				}
-			}
-
-			continue
-		}
-
-		if char == '.' && !dotConsumed {
-			dotConsumed = true
-			continue
-		}
-
-		l.position--
-		break
-	}
-
-	return l.input[startingPosition:l.position], true
-}
-
 // next returns the next token. ok is false at EOF.
 func (l *lexer) next() (token, bool) {
 	for l.position < len(l.input) {
@@ -136,6 +69,12 @@ func (l *lexer) next() (token, bool) {
 				lit:  result,
 			}, true
 		}
+
+		if char >= 'a' && char <= 'z' {
+			return l.readKeyword()
+		}
+
+		return token{}, false
 
 	}
 	return token{
