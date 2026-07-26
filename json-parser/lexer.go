@@ -1,7 +1,5 @@
 package jsonparser
 
-import "strings"
-
 type lexer struct {
 	position int
 	input    string
@@ -34,10 +32,10 @@ func (l *lexer) readString() (string, bool) {
 	return l.input[startingPosition : l.position-1], true
 }
 
-func (l *lexer) readNumber(startChar byte) (string, bool) {
+func (l *lexer) readNumber() (string, bool) {
 	eConsumed := false
-	includeLast := true
-	startingPosition := l.position
+	dotConsumed := false
+	startingPosition := l.position - 1
 
 	for l.position < len(l.input) {
 		char := l.input[l.position]
@@ -57,22 +55,16 @@ func (l *lexer) readNumber(startChar byte) (string, bool) {
 			continue
 		}
 
-		includeLast = false
+		if char == '.' && !dotConsumed {
+			dotConsumed = true
+			continue
+		}
+
+		l.position--
 		break
 	}
 
-	var stringRest string
-	if includeLast {
-		stringRest = l.input[startingPosition:l.position]
-	} else {
-		stringRest = l.input[startingPosition : l.position-1]
-	}
-
-	var resultBuilder strings.Builder
-	resultBuilder.WriteByte(startChar)
-	resultBuilder.WriteString(stringRest)
-
-	return resultBuilder.String(), true
+	return l.input[startingPosition:l.position], true
 }
 
 // next returns the next token. ok is false at EOF.
@@ -122,8 +114,8 @@ func (l *lexer) next() (token, bool) {
 			}, true
 		}
 
-		if char >= '0' && char <= '9' {
-			result, ok := l.readNumber(char)
+		if (char >= '0' && char <= '9') || char == '-' {
+			result, ok := l.readNumber()
 
 			if !ok {
 				return token{}, false
