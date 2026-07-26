@@ -1,7 +1,8 @@
 package jsonfixer
 
 // Fix appends missing ", }, ] (and a trailing \) so delimiters balance.
-// It also removes a trailing comma outside strings. Not always valid JSON.
+// It also trims a trailing comma and completes partial true/false/null outside strings.
+// Not always valid JSON.
 func Fix(input string) (string, error) {
 	stk := stack{}
 	var err error
@@ -25,6 +26,8 @@ func Fix(input string) (string, error) {
 
 	suffix := stk.close()
 
-	base := removeTrailingComma(input, lexer.inString)
+	base := removeTrailingWS(input, lexer.inString)
+	base = removeTrailingComma(base, lexer.inString)
+	base = fixIncompleteToken(base, lexer.inString)
 	return base + suffix, nil
 }
