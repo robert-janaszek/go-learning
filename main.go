@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
-
-	jsonfixer "github.com/robert-janaszek/go-learning/json-fixer"
+	jsonparser "github.com/robert-janaszek/go-learning/json-parser"
 )
 
 func main() {
@@ -14,6 +12,8 @@ func main() {
 	// day2b()
 	// day2c()
 
-	result, _ := jsonfixer.Fix(`{"a`)
-	fmt.Println(result)
+	// result, _ := jsonfixer.Fix(`{"a`)
+	// fmt.Println(result)
+
+	jsonparser.Parse("1e+2")
 }

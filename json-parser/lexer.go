@@ -52,6 +52,16 @@ func (l *lexer) readNumber() (string, bool) {
 			}
 
 			eConsumed = true
+
+			if l.position < len(l.input) {
+				nextChar := l.input[l.position]
+
+				switch nextChar {
+				case '-', '+':
+					l.position++
+				}
+			}
+
 			continue
 		}
 
