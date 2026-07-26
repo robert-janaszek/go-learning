@@ -76,6 +76,40 @@ func TestFix(t *testing.T) {
 	}
 }
 
+func TestFixIncompleteNumber(t *testing.T) {
+	cases := map[string]string{
+		`1.`:       `1.0`,
+		`0.`:       `0.0`,
+		`-1.`:      `-1.0`,
+		`{"a":1.`:  `{"a":1.0}`,
+		`[1.`:      `[1.0]`,
+		`1.0`:      `1.0`,
+		`1.5`:      `1.5`,
+		`1e2`:      `1e2`,
+		`1e+2`:     `1e+2`,
+		`1e`:       `1e0`,
+		`1E`:       `1E0`,
+		`1e+`:      `1e+0`,
+		`1e-`:      `1e-0`,
+		`1.2e`:     `1.2e0`,
+		`{"a":1e`:  `{"a":1e0}`,
+		`[1e+`:     `[1e+0]`,
+		`-`:        `-0`,
+		`{"a":-`:   `{"a":-0}`,
+		`[-`:       `[-0]`,
+		`"1.`:      `"1."`,
+		`{"a":"1e`: `{"a":"1e"}`,
+		`1. `:      `1.0`,
+		`1e+ `:     `1e+0`,
+	}
+	for in, want := range cases {
+		got, err := Fix(in)
+		if err != nil || got != want {
+			t.Errorf("Fix(%q) = %q, %v; want %q", in, got, err, want)
+		}
+	}
+}
+
 func TestFixError(t *testing.T) {
 	for _, in := range []string{"}", "{]", "{[}"} {
 		if _, err := Fix(in); err == nil {
