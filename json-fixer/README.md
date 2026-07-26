@@ -1,6 +1,7 @@
 # jsonfixer
 
 Closes truncated JSON-like input by balancing delimiters: `"`, `{`/`}`, `[`/`]`, and a dangling `\`.
+Also strips a trailing comma outside of strings (after trimming whitespace).
 
 ```go
 out, err := jsonfixer.Fix(`{"a`)
@@ -13,13 +14,14 @@ out, err := jsonfixer.Fix(`{"a`)
 - Unclosed strings
 - Escaped quotes (`\"` does not end a string)
 - Trailing backslash (completed as `\\` before closing `"`)
+- Trailing comma outside strings (`[1,` → `[1]`; `"hello,` keeps the comma)
 - Rejects clear mismatches (`}`, `{]`, `{[}`)
 
 ## What it does not do
 
 - Guarantee valid JSON (e.g. `{{` → `{{}}`)
 - Fix truncated literals (`tru`, `nul`, `12.`)
-- Fix trailing commas (`[1,`)
+- Fix commas before an existing closer (`{"a":1,}`)
 - Full escape validation (`\uXXXX`, etc.)
 
 ## Test

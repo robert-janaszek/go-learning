@@ -2,6 +2,21 @@ package jsonfixer
 
 import "testing"
 
+func TestFixTrailingComma(t *testing.T) {
+	cases := map[string]string{
+		`[1,`:     `[1]`,
+		`{"a":1,`: `{"a":1}`,
+		`[1, `:    `[1]`,
+		`"hello,`: `"hello,"`,
+	}
+	for in, want := range cases {
+		got, err := Fix(in)
+		if err != nil || got != want {
+			t.Errorf("Fix(%q) = %q, %v; want %q", in, got, err, want)
+		}
+	}
+}
+
 func TestFix(t *testing.T) {
 	cases := map[string]string{
 		"{}":     "{}",
