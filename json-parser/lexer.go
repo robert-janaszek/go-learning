@@ -19,42 +19,21 @@ func (l *lexer) next() (token, bool) {
 		switch char {
 		case '"':
 			stringInternal, ok := l.readString()
-			return token{
-				kind: tokenString,
-				lit:  stringInternal,
-			}, ok
+			return tok(tokenString, stringInternal), ok
 		case ' ', '\t', '\n', '\r':
 			continue
 		case ':':
-			return token{
-				kind: tokenColon,
-				lit:  ":",
-			}, true
+			return tok(tokenColon, ":"), true
 		case ',':
-			return token{
-				kind: tokenComma,
-				lit:  ",",
-			}, true
+			return tok(tokenComma, ","), true
 		case '{':
-			return token{
-				kind: tokenLBrace,
-				lit:  "{",
-			}, true
+			return tok(tokenLBrace, "{"), true
 		case '}':
-			return token{
-				kind: tokenRBrace,
-				lit:  "}",
-			}, true
+			return tok(tokenRBrace, "}"), true
 		case '[':
-			return token{
-				kind: tokenLBracket,
-				lit:  "[",
-			}, true
+			return tok(tokenLBracket, "["), true
 		case ']':
-			return token{
-				kind: tokenRBracket,
-				lit:  "]",
-			}, true
+			return tok(tokenRBracket, "]"), true
 		}
 
 		if (char >= '0' && char <= '9') || char == '-' {
@@ -64,10 +43,7 @@ func (l *lexer) next() (token, bool) {
 				return token{}, false
 			}
 
-			return token{
-				kind: tokenNumber,
-				lit:  result,
-			}, true
+			return tok(tokenNumber, result), true
 		}
 
 		if char >= 'a' && char <= 'z' {
@@ -77,8 +53,5 @@ func (l *lexer) next() (token, bool) {
 		return token{}, false
 
 	}
-	return token{
-		kind: tokenEOF,
-		lit:  "",
-	}, false
+	return tok(tokenEOF, ""), false
 }

@@ -19,20 +19,11 @@ func (l *lexer) readKeyword() (token, bool) {
 
 	switch possibleKeyword {
 	case "null":
-		return token{
-			kind: tokenNull,
-			lit:  "null",
-		}, true
+		return tok(tokenNull, "null"), true
 	case "true":
-		return token{
-			kind: tokenTrue,
-			lit:  "true",
-		}, true
+		return tok(tokenTrue, "true"), true
 	case "false":
-		return token{
-			kind: tokenFalse,
-			lit:  "false",
-		}, true
+		return tok(tokenFalse, "false"), true
 	}
 
 	return token{}, false

@@ -21,3 +21,10 @@ type token struct {
 	kind tokenKind
 	lit  string
 }
+
+func tok(kind tokenKind, lit string) token {
+	return token{
+		kind: kind,
+		lit:  lit,
+	}
+}
