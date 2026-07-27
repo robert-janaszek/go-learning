@@ -1,3 +1,3 @@
 module github.com/robert-janaszek/go-learning
 
-go 1.26.5
+go 1.26
