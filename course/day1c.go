@@ -2,20 +2,12 @@ package course
 
 import "fmt"
 
-type Player struct {
+type player struct {
 	Name   string
 	Health int
 }
 
-func takeDamage(player *Player, damage int) {
-	player.Health -= damage
-
-	if player.Health < 0 {
-		player.Health = 0
-	}
-}
-
-func (p *Player) TakeDamage(damage int) {
+func takeDamage(p *player, damage int) {
 	p.Health -= damage
 
 	if p.Health < 0 {
@@ -23,47 +15,55 @@ func (p *Player) TakeDamage(damage int) {
 	}
 }
 
-func (p Player) Heal(value int) Player {
+func (p *player) TakeDamage(damage int) {
+	p.Health -= damage
+
+	if p.Health < 0 {
+		p.Health = 0
+	}
+}
+
+func (p player) Heal(value int) player {
 	p.Health += value
 
 	return p
 }
 
-func (p *Player) Heal2(value int) {
+func (p *player) Heal2(value int) {
 	p.Health += value
 }
 
-type user struct {
+type optionalUser struct {
 	Name string
 	Age  *int
 }
 
 func Day1c() {
 	// ex 16
-	player := Player{
+	p := player{
 		Name:   "Robert",
 		Health: 100,
 	}
 
-	fmt.Println(player)
+	fmt.Println(p)
 
-	takeDamage(&player, 20)
+	takeDamage(&p, 20)
 
-	fmt.Println(player)
+	fmt.Println(p)
 
-	player.TakeDamage(20)
+	p.TakeDamage(20)
 
-	fmt.Println(player) // 60
+	fmt.Println(p) // 60
 
 	// ex 17
-	var healedCopy = player.Heal(1)
-	player.Heal2(20)
+	var healedCopy = p.Heal(1)
+	p.Heal2(20)
 
 	fmt.Println(healedCopy) // 61 health
-	fmt.Println(player)     // 80 health
+	fmt.Println(p)          // 80 health
 
 	// ex 18
-	newPlayer := &Player{Name: "New", Health: 100}
+	newPlayer := &player{Name: "New", Health: 100}
 
 	newPlayer.Health += 20
 	(*newPlayer).Health += 1
@@ -72,15 +72,15 @@ func Day1c() {
 
 	// ex 19
 
-	user1 := user{Name: "John"}
+	user1 := optionalUser{Name: "John"}
 	age := 40
-	user2 := user{Name: "Sophia", Age: &age}
+	user2 := optionalUser{Name: "Sophia", Age: &age}
 
 	fmt.Println(user1, user2)
 
 	// ex 20
 
-	slice := []Player{{}, {}}
+	slice := []player{{}, {}}
 	fmt.Println(slice)
 
 	for i := 0; i <= len(slice); i++ {
@@ -91,8 +91,8 @@ func Day1c() {
 		}
 	}
 
-	for _, p := range slice {
-		p.Health = 10 // works on copy, not reference
+	for _, item := range slice {
+		item.Health = 10 // works on copy, not reference
 	}
 
 	fmt.Println(slice)

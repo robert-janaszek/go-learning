@@ -4,23 +4,23 @@ import (
 	"fmt"
 )
 
-type Book struct {
+type book struct {
 	Title  string
 	Author string
 	Pages  int
 	IsRead bool
 }
 
-func (b Book) Summary() string {
+func (b book) Summary() string {
 	// return "\"" + b.Title + "\" by " + b.Author + " (" + strconv.Itoa(b.Pages) + " pages)"
 	return fmt.Sprintf("\"%s\" by %s (%d pages)", b.Title, b.Author, b.Pages)
 }
 
-func (b *Book) MarkAsRead() {
+func (b *book) MarkAsRead() {
 	b.IsRead = true
 }
 
-type BookWithTags struct {
+type bookWithTags struct {
 	Title  string
 	Author string
 	Pages  int
@@ -28,37 +28,37 @@ type BookWithTags struct {
 	Tags   []string
 }
 
-func NewBook(title string, author string, pages int) *Book {
-	return &Book{
+func newBook(title string, author string, pages int) *book {
+	return &book{
 		Title:  title,
 		Author: author,
 		Pages:  pages,
 	}
 }
 
-type Celsius float64
+type celsius float64
 
-func (c Celsius) ToFahrenheit() float64 {
+func (c celsius) ToFahrenheit() float64 {
 	return float64(c)*9/5 + 32
 }
 
-func (c *Celsius) Add(value float64) {
-	// *c = Celsius(float64(*c) + value) -- ok
-	*c += Celsius(value)
+func (c *celsius) Add(value float64) {
+	// *c = celsius(float64(*c) + value) -- ok
+	*c += celsius(value)
 }
 
 func Day2a() {
 	// ex 1
-	book := Book{
+	b := book{
 		Title:  "De revolutionibus orbium coelestium",
 		Author: "Nicolas Copernicus",
 		Pages:  392,
 		IsRead: true,
 	}
-	fmt.Printf("%+v\n", book)
+	fmt.Printf("%+v\n", b)
 
 	// ex 2
-	book2 := Book{
+	book2 := book{
 		"Philosophiae Naturalis Principia Mathematica",
 		"Isaac Newton",
 		423,
@@ -66,7 +66,7 @@ func Day2a() {
 	}
 	fmt.Printf("%+v\n", book2)
 
-	book3 := Book{}
+	book3 := book{}
 	book3.Title = "Special theory of relativity"
 	book3.Author = "Albert Einstein"
 	book3.Pages = 543
@@ -76,8 +76,8 @@ func Day2a() {
 
 	// ex 3
 
-	book4a := NewBook("On the Origin of Species", "Charles Darwin", 500)
-	book4b := *NewBook("On the Origin of Species", "Charles Darwin", 500) // copies value - mistake
+	book4a := newBook("On the Origin of Species", "Charles Darwin", 500)
+	book4b := *newBook("On the Origin of Species", "Charles Darwin", 500) // copies value - mistake
 
 	fmt.Printf("%+v\n", book4a)
 	fmt.Printf("%+v\n", book4b)
@@ -92,13 +92,13 @@ func Day2a() {
 	}
 	fmt.Printf("%+v\n", config)
 
-	book5a := Book{
+	book5a := book{
 		Title:  "De revolutionibus orbium coelestium",
 		Author: "Nicolas Copernicus",
 		Pages:  392,
 		IsRead: true,
 	}
-	book5b := Book{
+	book5b := book{
 		Title:  "De revolutionibus orbium coelestium",
 		Author: "Nicolas Copernicus",
 		Pages:  392,
@@ -109,28 +109,28 @@ func Day2a() {
 
 	// ex 5
 
-	book6a := BookWithTags{}
-	book6b := BookWithTags{}
+	book6a := bookWithTags{}
+	book6b := bookWithTags{}
 
 	fmt.Println(book6a, book6b)
 
 	// fmt.Println(book6a == book6b) // Do not compile
 
 	// ex 6
-	fmt.Println(book.Summary())
+	fmt.Println(b.Summary())
 
 	// ex 7
 	book2.MarkAsRead()
 	fmt.Printf("%+v\n", book2)
 
 	// ex 8
-	book7 := Book{Title: "Go in Action"}
+	book7 := book{Title: "Go in Action"}
 	book7.MarkAsRead()
 	// (&book7).MarkAsRead() - not needed
 	fmt.Printf("%+v\n", book7)
 
 	// ex 9
-	temp := Celsius(100)
+	temp := celsius(100)
 	fmt.Println(temp.ToFahrenheit())
 
 	// ex 10

@@ -7,7 +7,7 @@ import (
 	"github.com/robert-janaszek/go-learning/bank"
 )
 
-type Product struct {
+type product struct {
 	ID           int     `json:"product_id"`
 	Name         string  `json:"name"`
 	Price        float64 `json:"price"`
@@ -15,19 +15,19 @@ type Product struct {
 	Discount     float64 `json:"discount,omitempty"`
 }
 
-type CartItem struct {
-	Product  Product
+type cartItem struct {
+	Product  product
 	Quantity int
 }
-type Cart struct {
-	Items []CartItem
+type cart struct {
+	Items []cartItem
 }
 
-func (c *Cart) AddItem(p Product, qty int) {
-	item := CartItem{Product: p, Quantity: qty}
+func (c *cart) AddItem(p product, qty int) {
+	item := cartItem{Product: p, Quantity: qty}
 	c.Items = append(c.Items, item)
 }
-func (c Cart) Total() float64 {
+func (c cart) Total() float64 {
 	var total float64 = 0
 
 	for _, item := range c.Items {
@@ -39,7 +39,7 @@ func (c Cart) Total() float64 {
 
 func Day2c() {
 	// ex 16
-	p := Product{ID: 1, Name: "hairdryer", Price: 300}
+	p := product{ID: 1, Name: "hairdryer", Price: 300}
 	j, err := json.Marshal(p)
 
 	if err != nil {
@@ -49,7 +49,7 @@ func Day2c() {
 	fmt.Println(string(j))
 
 	// ex 17
-	p1 := Product{
+	p1 := product{
 		ID:           2,
 		Name:         "hairdryer 2",
 		Price:        400,
@@ -66,7 +66,7 @@ func Day2c() {
 
 	// ex 18
 	jsonData := []byte(`{"name":"Laptop", "price": 2500}`)
-	var p2 Product
+	var p2 product
 	err = json.Unmarshal(jsonData, &p2)
 
 	if err != nil {
@@ -76,11 +76,11 @@ func Day2c() {
 	fmt.Printf("%+v\n", p2)
 
 	// ex 19
-	cart := Cart{}
-	cart.AddItem(p1, 1)
-	cart.AddItem(p2, 3)
+	c := cart{}
+	c.AddItem(p1, 1)
+	c.AddItem(p2, 3)
 
-	fmt.Println(cart.Total())
+	fmt.Println(c.Total())
 
 	// ex 20
 

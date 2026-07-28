@@ -2,100 +2,100 @@ package course
 
 import "fmt"
 
-type Address struct {
+type address struct {
 	City    string
 	ZipCode string
 }
 
-type User struct {
+type user struct {
 	Name string
-	Addr Address
+	Addr address
 }
 
-type EmbedUser struct {
+type embedUser struct {
 	Name string
-	Address
+	address
 }
 
-func (a Address) FullAddress() string {
+func (a address) FullAddress() string {
 	return a.City
 }
 
-func (u EmbedUser) FullAddress() string {
-	return u.Name + " from " + u.Address.FullAddress()
+func (u embedUser) FullAddress() string {
+	return u.Name + " from " + u.address.FullAddress()
 }
 
-type Engine struct {
+type engine struct {
 	HorsePower int
 }
-type Car struct {
-	*Engine
+type car struct {
+	*engine
 }
 
-func (e *Engine) Power() int {
+func (e *engine) Power() int {
 	return e.HorsePower
 }
 
-type Logger struct {
+type logger struct {
 }
 
-func (l Logger) Log(msg string) {
+func (l logger) Log(msg string) {
 	fmt.Println(msg)
 }
 
-type Database struct{}
+type database struct{}
 
-func (d Database) Connect() {
+func (d database) Connect() {
 	fmt.Println("Connected")
 }
 
-type Server struct {
-	Logger
-	Database
+type server struct {
+	logger
+	database
 }
 
 func Day2b() {
 	// ex 11
-	user := User{
+	u := user{
 		Name: "Tom",
-		Addr: Address{
+		Addr: address{
 			City:    "Warsaw",
 			ZipCode: "01-001",
 		},
 	}
 
-	fmt.Printf("%v\n", user)
-	fmt.Println(user.Addr.City)
+	fmt.Printf("%v\n", u)
+	fmt.Println(u.Addr.City)
 
 	// ex 12
 
-	user2 := EmbedUser{
+	user2 := embedUser{
 		Name: "Mark",
-		Address: Address{
+		address: address{
 			City:    "Poznan",
 			ZipCode: "02-020",
 		},
 	}
 
-	fmt.Println(user2.Address)
+	fmt.Println(user2.address)
 	fmt.Println(user2.City)
-	fmt.Println(user2.Address.City)
+	fmt.Println(user2.address.City)
 
 	// ex 13
 
 	fmt.Println("// 13")
 	fmt.Println(user2.FullAddress())
-	fmt.Println(user2.Address.FullAddress())
+	fmt.Println(user2.address.FullAddress())
 
 	// ex 14
-	c := Car{}
-	e := Engine{
+	c := car{}
+	e := engine{
 		HorsePower: 100,
 	}
-	c1 := Car{
-		Engine: &e,
+	c1 := car{
+		engine: &e,
 	}
-	c2 := Car{&e}
+	c2 := car{&e}
 	fmt.Println(c)
 	fmt.Println(c1)
 	fmt.Println(c2)
@@ -103,7 +103,7 @@ func Day2b() {
 	// c.Power() -- invalid memory address or nil pointer dereference
 
 	// ex 15
-	server := Server{}
-	server.Log("Log")
-	server.Connect()
+	s := server{}
+	s.Log("Log")
+	s.Connect()
 }
