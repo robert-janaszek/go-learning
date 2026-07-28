@@ -1,8 +1,8 @@
-package main
+package course
 
 import "fmt"
 
-func day1a() {
+func Day1a() {
 	// ex 1
 	var age1 int = 10
 	var age2 = 20

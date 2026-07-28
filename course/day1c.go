@@ -1,4 +1,4 @@
-package main
+package course
 
 import "fmt"
 
@@ -7,7 +7,7 @@ type Player struct {
 	Health int
 }
 
-func TakeDamage(player *Player, damage int) {
+func takeDamage(player *Player, damage int) {
 	player.Health -= damage
 
 	if player.Health < 0 {
@@ -38,7 +38,7 @@ type user struct {
 	Age  *int
 }
 
-func day1c() {
+func Day1c() {
 	// ex 16
 	player := Player{
 		Name:   "Robert",
@@ -47,7 +47,7 @@ func day1c() {
 
 	fmt.Println(player)
 
-	TakeDamage(&player, 20)
+	takeDamage(&player, 20)
 
 	fmt.Println(player)
 

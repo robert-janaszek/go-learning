@@ -1,4 +1,4 @@
-package main
+package course
 
 import (
 	"encoding/json"
@@ -37,7 +37,7 @@ func (c Cart) Total() float64 {
 	return total
 }
 
-func day2c() {
+func Day2c() {
 	// ex 16
 	p := Product{ID: 1, Name: "hairdryer", Price: 300}
 	j, err := json.Marshal(p)

@@ -1,4 +1,4 @@
-package main
+package course
 
 import (
 	"fmt"
@@ -57,7 +57,7 @@ func localInt(a int) int {
 	return localVal
 }
 
-func day1b() {
+func Day1b() {
 	// ex 11
 	a := 1
 	b := 2

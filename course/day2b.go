@@ -1,4 +1,4 @@
-package main
+package course
 
 import "fmt"
 
@@ -54,7 +54,7 @@ type Server struct {
 	Database
 }
 
-func day2b() {
+func Day2b() {
 	// ex 11
 	user := User{
 		Name: "Tom",

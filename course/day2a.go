@@ -1,4 +1,4 @@
-package main
+package course
 
 import (
 	"fmt"
@@ -47,7 +47,7 @@ func (c *Celsius) Add(value float64) {
 	*c += Celsius(value)
 }
 
-func day2() {
+func Day2a() {
 	// ex 1
 	book := Book{
 		Title:  "De revolutionibus orbium coelestium",
