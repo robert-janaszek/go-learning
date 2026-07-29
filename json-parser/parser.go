@@ -1,14 +1,15 @@
 package jsonparser
 
+import "errors"
+
 func Parse(input string) (any, error) {
 	l := lexer{}
 	l.start(input)
-	for {
-		_, ok := l.next()
 
-		if !ok {
-			break
-		}
+	tok, ok := l.next()
+	if !ok {
+		return nil, errors.New("failed to read token")
 	}
-	return nil, nil
+
+	return parseValue(tok, &l)
 }
