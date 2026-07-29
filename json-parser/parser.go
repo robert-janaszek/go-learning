@@ -11,5 +11,17 @@ func Parse(input string) (any, error) {
 		return nil, errors.New("failed to read token")
 	}
 
-	return parseValue(tok, &l)
+	val, err := parseValue(tok, &l)
+
+	if err != nil {
+		return nil, err
+	}
+
+	tok, ok = l.next()
+
+	if ok {
+		return nil, errors.New("expected EOF, but found " + tok.lit)
+	}
+
+	return val, nil
 }

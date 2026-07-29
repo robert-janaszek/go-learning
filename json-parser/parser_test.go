@@ -139,3 +139,47 @@ func TestParseObjectErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestParseEOFAfterValue(t *testing.T) {
+	okCases := map[string]any{
+		`1`:           float64(1),
+		`1   `:        float64(1),
+		`[]`:          []any{},
+		`[]  `:        []any{},
+		`{}`:          map[string]any{},
+		`  {"a":1}  `: map[string]any{"a": float64(1)},
+	}
+
+	for in, want := range okCases {
+		t.Run("ok/"+in, func(t *testing.T) {
+			got, err := Parse(in)
+			if err != nil {
+				t.Fatalf("Parse(%q): unexpected error: %v", in, err)
+			}
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("Parse(%q)\n got %#v\nwant %#v", in, got, want)
+			}
+		})
+	}
+
+	errCases := []string{
+		`1 2`,
+		`true false`,
+		`null true`,
+		`"hi" "there"`,
+		`[] {}`,
+		`{} []`,
+		`{"a":1} 0`,
+		`[1] ,`,
+		`true,`,
+	}
+
+	for _, in := range errCases {
+		t.Run("err/"+in, func(t *testing.T) {
+			got, err := Parse(in)
+			if err == nil {
+				t.Fatalf("Parse(%q): want error, got %#v", in, got)
+			}
+		})
+	}
+}
