@@ -8,8 +8,7 @@ import (
 func parseValue(tok token, l *lexer) (any, error) {
 	switch tok.kind {
 	case tokenLBrace:
-		// parseObject
-		return nil, nil
+		return parseObject(l)
 	case tokenLBracket:
 		return parseArray(l)
 	case tokenString:

@@ -79,3 +79,63 @@ func TestParseArrayErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestParseObject(t *testing.T) {
+	cases := map[string]any{
+		`{}`:                  map[string]any{},
+		`{"a":1}`:             map[string]any{"a": float64(1)},
+		`{"a":1,"b":2}`:       map[string]any{"a": float64(1), "b": float64(2)},
+		`{"x":true}`:          map[string]any{"x": true},
+		`{"x":false}`:         map[string]any{"x": false},
+		`{"x":null}`:          map[string]any{"x": nil},
+		`{"s":"hi"}`:          map[string]any{"s": "hi"},
+		`{"n":-4.2e+1}`:       map[string]any{"n": float64(-42)},
+		`{ "a" : 1 }`:         map[string]any{"a": float64(1)},
+		`{"a":[1,2]}`:         map[string]any{"a": []any{float64(1), float64(2)}},
+		`{"a":{"b":1}}`:       map[string]any{"a": map[string]any{"b": float64(1)}},
+		`{"a":1,"b":true,"c":"z"}`: map[string]any{
+			"a": float64(1),
+			"b": true,
+			"c": "z",
+		},
+	}
+
+	for in, want := range cases {
+		t.Run(in, func(t *testing.T) {
+			got, err := Parse(in)
+			if err != nil {
+				t.Fatalf("Parse(%q): unexpected error: %v", in, err)
+			}
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("Parse(%q)\n got %#v\nwant %#v", in, got, want)
+			}
+		})
+	}
+}
+
+func TestParseObjectErrors(t *testing.T) {
+	cases := []string{
+		`{`,
+		`{"a"`,
+		`{"a":`,
+		`{"a":1`,
+		`{"a":1,`,
+		`{"a":1,}`,
+		`{"a" 1}`,
+		`{1:2}`,
+		`{"a":1 "b":2}`,
+		`{,"a":1}`,
+		`{"a":1,,"b":2}`,
+		`{"a":1]`,
+		`{]`,
+	}
+
+	for _, in := range cases {
+		t.Run(in, func(t *testing.T) {
+			got, err := Parse(in)
+			if err == nil {
+				t.Fatalf("Parse(%q): want error, got %#v", in, got)
+			}
+		})
+	}
+}
