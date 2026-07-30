@@ -5,13 +5,9 @@ import "errors"
 func parseArray(l *lexer) (any, error) {
 	var values []any = []any{}
 
-	var tok token
-	var ok bool
-
-	tok, ok = l.next()
-
-	if !ok {
-		return nil, errors.New("unexpected end of file")
+	tok, err := nextToken(l)
+	if err != nil {
+		return nil, err
 	}
 
 	if tok.kind == tokenRBracket {
@@ -19,7 +15,6 @@ func parseArray(l *lexer) (any, error) {
 	}
 
 	var val any
-	var err error
 	val, err = parseValue(tok, l)
 
 	if err != nil {
@@ -28,9 +23,9 @@ func parseArray(l *lexer) (any, error) {
 
 	values = append(values, val)
 
-	tok, ok = l.next()
-	if !ok {
-		return nil, errors.New("unexpected end of file")
+	tok, err = nextToken(l)
+	if err != nil {
+		return nil, err
 	}
 
 	for {
@@ -42,9 +37,9 @@ func parseArray(l *lexer) (any, error) {
 			return nil, errors.New("expected comma")
 		}
 
-		tok, ok = l.next()
-		if !ok {
-			return nil, errors.New("unexpected end of file")
+		tok, err = nextToken(l)
+		if err != nil {
+			return nil, err
 		}
 
 		val, err := parseValue(tok, l)
@@ -55,10 +50,9 @@ func parseArray(l *lexer) (any, error) {
 
 		values = append(values, val)
 
-		tok, ok = l.next()
-
-		if !ok {
-			return nil, errors.New("unexpected end of file")
+		tok, err = nextToken(l)
+		if err != nil {
+			return nil, err
 		}
 	}
 
