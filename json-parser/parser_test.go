@@ -183,3 +183,41 @@ func TestParseEOFAfterValue(t *testing.T) {
 		})
 	}
 }
+
+func TestParseEmpty(t *testing.T) {
+	cases := []string{
+		``,
+		`   `,
+		"\t\n",
+	}
+
+	for _, in := range cases {
+		t.Run(in, func(t *testing.T) {
+			got, err := Parse(in)
+			if err == nil {
+				t.Fatalf("Parse(%q): want error, got %#v", in, got)
+			}
+		})
+	}
+}
+
+func TestParseLexErrors(t *testing.T) {
+	cases := []string{
+		`@`,
+		`1@`,
+		`"hi`,
+		`tru`,
+		`[1, @]`,
+		`{"a": tree}`,
+		`"\`,
+	}
+
+	for _, in := range cases {
+		t.Run(in, func(t *testing.T) {
+			got, err := Parse(in)
+			if err == nil {
+				t.Fatalf("Parse(%q): want error, got %#v", in, got)
+			}
+		})
+	}
+}

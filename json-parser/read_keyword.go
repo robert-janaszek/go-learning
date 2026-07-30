@@ -1,6 +1,8 @@
 package jsonparser
 
-func (l *lexer) readKeyword() (token, bool) {
+import "errors"
+
+func (l *lexer) readKeyword() (token, error) {
 	startingPosition := l.position - 1
 
 	for l.position < len(l.input) {
@@ -19,12 +21,12 @@ func (l *lexer) readKeyword() (token, bool) {
 
 	switch possibleKeyword {
 	case "null":
-		return tok(tokenNull, "null"), true
+		return tok(tokenNull, "null"), nil
 	case "true":
-		return tok(tokenTrue, "true"), true
+		return tok(tokenTrue, "true"), nil
 	case "false":
-		return tok(tokenFalse, "false"), true
+		return tok(tokenFalse, "false"), nil
 	}
 
-	return token{}, false
+	return token{}, errors.New("unrecognized keyword: " + possibleKeyword)
 }

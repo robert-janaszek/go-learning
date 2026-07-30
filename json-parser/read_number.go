@@ -1,6 +1,9 @@
 package jsonparser
 
-func (l *lexer) readNumber() (string, bool) {
+import "errors"
+
+// TODO: add more defences for numbers, RFC
+func (l *lexer) readNumber() (string, error) {
 	eConsumed := false
 	dotConsumed := false
 	startingPosition := l.position - 1
@@ -16,7 +19,7 @@ func (l *lexer) readNumber() (string, bool) {
 		switch char {
 		case 'e', 'E':
 			if eConsumed {
-				return "", false
+				return "", errors.New("incorrect number, found 2 'e'")
 			}
 
 			eConsumed = true
@@ -42,5 +45,5 @@ func (l *lexer) readNumber() (string, bool) {
 		break
 	}
 
-	return l.input[startingPosition:l.position], true
+	return l.input[startingPosition:l.position], nil
 }

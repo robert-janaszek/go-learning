@@ -1,14 +1,16 @@
 package jsonparser
 
-import "errors"
+import (
+	"fmt"
+)
 
 func Parse(input string) (any, error) {
 	l := lexer{}
 	l.start(input)
 
-	tok, ok := l.next()
-	if !ok {
-		return nil, errors.New("failed to read token")
+	tok, err := l.next()
+	if err != nil {
+		return nil, err
 	}
 
 	val, err := parseValue(tok, &l)
@@ -17,10 +19,14 @@ func Parse(input string) (any, error) {
 		return nil, err
 	}
 
-	tok, ok = l.next()
+	tok, err = l.next()
 
-	if ok {
-		return nil, errors.New("expected EOF, but found " + tok.lit)
+	if err != nil {
+		return nil, err
+	}
+
+	if tok.kind != tokenEOF {
+		return nil, fmt.Errorf("wanted EOF, found: %q", tok.lit)
 	}
 
 	return val, nil

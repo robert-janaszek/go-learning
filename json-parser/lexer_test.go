@@ -80,24 +80,79 @@ func TestLexer(t *testing.T) {
 	}
 
 	for in, want := range cases {
-		got := collectTokens(in)
-		if len(got) == 0 && len(want) == 0 {
-			continue
-		}
-		if !reflect.DeepEqual(got, want) {
-			t.Errorf("lexer(%q)\n got %#v\nwant %#v", in, got, want)
-		}
+		t.Run(in, func(t *testing.T) {
+			got, err := collectTokens(in)
+			if err != nil {
+				t.Fatalf("lexer(%q): unexpected error: %v", in, err)
+			}
+			if len(got) == 0 && len(want) == 0 {
+				return
+			}
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("lexer(%q)\n got %#v\nwant %#v", in, got, want)
+			}
+		})
 	}
 }
 
-func collectTokens(input string) []token {
+func TestLexerEOF(t *testing.T) {
+	l := lexer{}
+	l.start("")
+
+	tok, err := l.next()
+	if err != nil {
+		t.Fatalf("empty input: unexpected error: %v", err)
+	}
+	if tok.kind != tokenEOF {
+		t.Fatalf("empty input: got kind %v, want tokenEOF", tok.kind)
+	}
+
+	l.start("   \t\n")
+	tok, err = l.next()
+	if err != nil {
+		t.Fatalf("whitespace-only: unexpected error: %v", err)
+	}
+	if tok.kind != tokenEOF {
+		t.Fatalf("whitespace-only: got kind %v, want tokenEOF", tok.kind)
+	}
+}
+
+func TestLexerErrors(t *testing.T) {
+	cases := []string{
+		`@`,
+		`#`,
+		`"`,
+		`"abc`,
+		`"\`,
+		`tru`,
+		`tree`,
+		`True`,
+		`1e2e3`,
+	}
+
+	for _, in := range cases {
+		t.Run(in, func(t *testing.T) {
+			_, err := collectTokens(in)
+			if err == nil {
+				t.Fatalf("lexer(%q): want error", in)
+			}
+		})
+	}
+}
+
+// collectTokens returns all tokens until EOF.
+// Lexical errors are returned as err (not silently treated as EOF).
+func collectTokens(input string) ([]token, error) {
 	l := lexer{}
 	l.start(input)
 	var out []token
 	for {
-		tok, ok := l.next()
-		if !ok {
-			return out
+		tok, err := l.next()
+		if err != nil {
+			return out, err
+		}
+		if tok.kind == tokenEOF {
+			return out, nil
 		}
 		out = append(out, tok)
 	}

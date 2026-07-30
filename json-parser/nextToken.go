@@ -1,12 +1,10 @@
 package jsonparser
 
-import "errors"
-
 func nextToken(l *lexer) (token, error) {
-	tok, ok := l.next()
+	tok, err := l.next()
 
-	if !ok {
-		return token{}, errors.New("unexpected end of file")
+	if err != nil {
+		return token{}, err
 	}
 
 	return tok, nil
