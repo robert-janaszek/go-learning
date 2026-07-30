@@ -18,8 +18,9 @@ func parseObject(l *lexer) (any, error) {
 		return obj, nil
 	}
 
-	if tok.kind != tokenString {
-		return nil, errors.New("expected string, but found " + tok.lit)
+	err = expectToken(tok, l, tokenString)
+	if err != nil {
+		return nil, err
 	}
 	foundKey = tok.lit
 
@@ -28,8 +29,9 @@ func parseObject(l *lexer) (any, error) {
 		return nil, err
 	}
 
-	if tok.kind != tokenColon {
-		return nil, errors.New("expected ':', but found " + tok.lit)
+	err = expectToken(tok, l, tokenColon)
+	if err != nil {
+		return nil, err
 	}
 
 	tok, err = nextToken(l)
@@ -65,8 +67,9 @@ func parseObject(l *lexer) (any, error) {
 			return nil, err
 		}
 
-		if tok.kind != tokenString {
-			return nil, errors.New("expected string, but found " + tok.lit)
+		err = expectToken(tok, l, tokenString)
+		if err != nil {
+			return nil, err
 		}
 
 		foundKey = tok.lit
@@ -77,8 +80,9 @@ func parseObject(l *lexer) (any, error) {
 			return nil, err
 		}
 
-		if tok.kind != tokenColon {
-			return nil, errors.New("expected ':', but found " + tok.lit)
+		err = expectToken(tok, l, tokenColon)
+		if err != nil {
+			return nil, err
 		}
 
 		tok, err = nextToken(l)

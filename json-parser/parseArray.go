@@ -1,7 +1,5 @@
 package jsonparser
 
-import "errors"
-
 func parseArray(l *lexer) (any, error) {
 	var values []any = []any{}
 
@@ -33,8 +31,9 @@ func parseArray(l *lexer) (any, error) {
 			break
 		}
 
-		if tok.kind != tokenComma {
-			return nil, errors.New("expected comma")
+		err = expectToken(tok, l, tokenComma)
+		if err != nil {
+			return nil, err
 		}
 
 		tok, err = nextToken(l)
