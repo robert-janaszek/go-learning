@@ -1,0 +1,48 @@
+# ==============================================================================
+# GIT COMMIT MESSAGES — Go learning course
+# ==============================================================================
+
+Whenever generating a git commit message, follow these rules:
+
+1. LANGUAGE & STYLE:
+   - Entire message in English.
+   - Imperative mood in the summary ("add", "fix", "complete") — never past tense.
+   - Do not capitalize the first letter after the colon.
+   - Do not end the subject line with a period.
+   - Keep the first line under 72 characters.
+
+2. FORMAT:
+   <type>(<scope>): <short summary>
+
+   [optional body for larger changes, separated by a blank line]
+
+3. TYPES (use only these):
+   - feat: new exercises, packages, or course work completed
+   - fix: bug fix in exercise or package code
+   - docs: documentation only (course/docs, README)
+   - chore: tooling, dependencies (go.mod), meta files (.cursorrules)
+   - refactor: meaningful restructure of exercise code (not main.go wiring)
+
+4. SCOPE:
+   Prefer the course day or area, e.g. day5, day4, jsonparser, docs.
+   For dependency-only changes use deps.
+   Omit scope only when the change is truly cross-cutting and no day fits.
+
+5. WHAT TO FOCUS ON:
+   - Summarize the learning topic or exercises (e.g. packages, visibility, context).
+   - Prefer day-level summaries over listing every file.
+   - Group related exercise work under one commit message when committing a day chunk.
+
+6. WHAT TO IGNORE / NEVER MENTION:
+   - Switching which DayXa() is called from main.go (commenting Day4d, calling Day5a, etc.).
+   - That is temporary runner wiring, not the substance of the commit.
+   - Do not use scopes or wording from frontend stacks (components, hooks, React, etc.).
+
+# ==============================================================================
+# EXAMPLES:
+# ==============================================================================
+# feat(day5): add packages, visibility, and blank-import exercises
+# feat(day4): complete error handling exercises
+# docs(day5): add Polish exercise brief
+# chore(deps): add github.com/lib/pq
+# fix(day3): correct slice bounds in exercise helper
