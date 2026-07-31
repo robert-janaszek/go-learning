@@ -1,7 +1,7 @@
 package jsonparser
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -16,7 +16,8 @@ func (l *lexer) readString() (string, error) {
 			return result.String(), nil
 		case '\\':
 			if l.position >= len(l.input) {
-				return "", errors.New("unexpected EOF, unterminated escape")
+
+				return "", fmt.Errorf("unexpected EOF, unterminated escape at %d", l.position-1)
 			}
 			result.WriteByte(l.input[l.position])
 			l.position++
@@ -26,5 +27,5 @@ func (l *lexer) readString() (string, error) {
 
 	}
 
-	return "", errors.New(`unexpected EOF, wanted '"'`)
+	return "", fmt.Errorf(`unexpected EOF, wanted '"' at %d`, l.position-1)
 }

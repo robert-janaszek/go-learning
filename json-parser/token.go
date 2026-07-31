@@ -22,12 +22,14 @@ const (
 type token struct {
 	kind tokenKind
 	lit  string
+	pos  int
 }
 
-func tok(kind tokenKind, lit string) token {
+func tok(kind tokenKind, lit string, pos int) token {
 	return token{
 		kind: kind,
 		lit:  lit,
+		pos:  pos,
 	}
 }
 

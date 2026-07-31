@@ -21,11 +21,11 @@ func (l *lexer) readKeyword() (token, error) {
 
 	switch possibleKeyword {
 	case "null":
-		return tok(tokenNull, "null"), nil
+		return tok(tokenNull, "null", startingPosition), nil
 	case "true":
-		return tok(tokenTrue, "true"), nil
+		return tok(tokenTrue, "true", startingPosition), nil
 	case "false":
-		return tok(tokenFalse, "false"), nil
+		return tok(tokenFalse, "false", startingPosition), nil
 	}
 
 	return token{}, errors.New("unrecognized keyword: " + possibleKeyword)

@@ -1,6 +1,8 @@
 package jsonparser
 
-import "errors"
+import (
+	"fmt"
+)
 
 type lexer struct {
 	position int
@@ -20,40 +22,42 @@ func (l *lexer) next() (token, error) {
 
 		switch char {
 		case '"':
+			pos := l.position - 1
 			stringInternal, err := l.readString()
-			return tok(tokenString, stringInternal), err
+			return tok(tokenString, stringInternal, pos), err
 		case ' ', '\t', '\n', '\r':
 			continue
 		case ':':
-			return tok(tokenColon, ":"), nil
+			return tok(tokenColon, ":", l.position-1), nil
 		case ',':
-			return tok(tokenComma, ","), nil
+			return tok(tokenComma, ",", l.position-1), nil
 		case '{':
-			return tok(tokenLBrace, "{"), nil
+			return tok(tokenLBrace, "{", l.position-1), nil
 		case '}':
-			return tok(tokenRBrace, "}"), nil
+			return tok(tokenRBrace, "}", l.position-1), nil
 		case '[':
-			return tok(tokenLBracket, "["), nil
+			return tok(tokenLBracket, "[", l.position-1), nil
 		case ']':
-			return tok(tokenRBracket, "]"), nil
+			return tok(tokenRBracket, "]", l.position-1), nil
 		}
 
 		if (char >= '0' && char <= '9') || char == '-' {
+			pos := l.position - 1
 			result, err := l.readNumber(char)
 
 			if err != nil {
 				return token{}, err
 			}
 
-			return tok(tokenNumber, result), nil
+			return tok(tokenNumber, result, pos), nil
 		}
 
 		if char >= 'a' && char <= 'z' {
 			return l.readKeyword()
 		}
 
-		return token{}, errors.New("unrecognized token")
+		return token{}, fmt.Errorf("unrecognized token at %d", l.position-1)
 
 	}
-	return tok(tokenEOF, ""), nil
+	return tok(tokenEOF, "", l.position), nil
 }

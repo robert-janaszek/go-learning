@@ -1,81 +1,80 @@
 package jsonparser
 
 import (
-	"reflect"
 	"testing"
 )
 
 func TestLexer(t *testing.T) {
 	cases := map[string][]token{
 		``:        {},
-		`{}`:      {{tokenLBrace, "{"}, {tokenRBrace, "}"}},
-		`[]`:      {{tokenLBracket, "["}, {tokenRBracket, "]"}},
-		`:`:       {{tokenColon, ":"}},
-		`,`:       {{tokenComma, ","}},
-		`true`:    {{tokenTrue, "true"}},
-		`false`:   {{tokenFalse, "false"}},
-		`null`:    {{tokenNull, "null"}},
-		`123`:     {{tokenNumber, "123"}},
-		`-1`:      {{tokenNumber, "-1"}},
-		`-1.5`:    {{tokenNumber, "-1.5"}},
-		`0.5`:     {{tokenNumber, "0.5"}},
-		`1e2`:     {{tokenNumber, "1e2"}},
-		`1E2`:     {{tokenNumber, "1E2"}},
-		`1e+2`:    {{tokenNumber, "1e+2"}},
-		`1e-2`:    {{tokenNumber, "1e-2"}},
-		`1.5e-3`:  {{tokenNumber, "1.5e-3"}},
-		`-2.5E+1`: {{tokenNumber, "-2.5E+1"}},
+		`{}`:      {{kind: tokenLBrace, lit: "{"}, {kind: tokenRBrace, lit: "}"}},
+		`[]`:      {{kind: tokenLBracket, lit: "["}, {kind: tokenRBracket, lit: "]"}},
+		`:`:       {{kind: tokenColon, lit: ":"}},
+		`,`:       {{kind: tokenComma, lit: ","}},
+		`true`:    {{kind: tokenTrue, lit: "true"}},
+		`false`:   {{kind: tokenFalse, lit: "false"}},
+		`null`:    {{kind: tokenNull, lit: "null"}},
+		`123`:     {{kind: tokenNumber, lit: "123"}},
+		`-1`:      {{kind: tokenNumber, lit: "-1"}},
+		`-1.5`:    {{kind: tokenNumber, lit: "-1.5"}},
+		`0.5`:     {{kind: tokenNumber, lit: "0.5"}},
+		`1e2`:     {{kind: tokenNumber, lit: "1e2"}},
+		`1E2`:     {{kind: tokenNumber, lit: "1E2"}},
+		`1e+2`:    {{kind: tokenNumber, lit: "1e+2"}},
+		`1e-2`:    {{kind: tokenNumber, lit: "1e-2"}},
+		`1.5e-3`:  {{kind: tokenNumber, lit: "1.5e-3"}},
+		`-2.5E+1`: {{kind: tokenNumber, lit: "-2.5E+1"}},
 		`[1, 2]`: {
-			{tokenLBracket, "["},
-			{tokenNumber, "1"},
-			{tokenComma, ","},
-			{tokenNumber, "2"},
-			{tokenRBracket, "]"},
+			{kind: tokenLBracket, lit: "["},
+			{kind: tokenNumber, lit: "1"},
+			{kind: tokenComma, lit: ","},
+			{kind: tokenNumber, lit: "2"},
+			{kind: tokenRBracket, lit: "]"},
 		},
 		`[-1, 1e-2, 3]`: {
-			{tokenLBracket, "["},
-			{tokenNumber, "-1"},
-			{tokenComma, ","},
-			{tokenNumber, "1e-2"},
-			{tokenComma, ","},
-			{tokenNumber, "3"},
-			{tokenRBracket, "]"},
+			{kind: tokenLBracket, lit: "["},
+			{kind: tokenNumber, lit: "-1"},
+			{kind: tokenComma, lit: ","},
+			{kind: tokenNumber, lit: "1e-2"},
+			{kind: tokenComma, lit: ","},
+			{kind: tokenNumber, lit: "3"},
+			{kind: tokenRBracket, lit: "]"},
 		},
 		`{"n":-4.2e+1}`: {
-			{tokenLBrace, "{"},
-			{tokenString, "n"},
-			{tokenColon, ":"},
-			{tokenNumber, "-4.2e+1"},
-			{tokenRBrace, "}"},
+			{kind: tokenLBrace, lit: "{"},
+			{kind: tokenString, lit: "n"},
+			{kind: tokenColon, lit: ":"},
+			{kind: tokenNumber, lit: "-4.2e+1"},
+			{kind: tokenRBrace, lit: "}"},
 		},
-		`"hi"`:     {{tokenString, "hi"}},
-		`"a\"b"`:   {{tokenString, `a"b`}},
-		`"a\\b"`:   {{tokenString, `a\b`}},
-		`"\\"`:     {{tokenString, `\`}},
-		`"\\\""`:   {{tokenString, `\"`}},
-		`"a\\\"b"`: {{tokenString, `a\"b`}},
+		`"hi"`:     {{kind: tokenString, lit: "hi"}},
+		`"a\"b"`:   {{kind: tokenString, lit: `a"b`}},
+		`"a\\b"`:   {{kind: tokenString, lit: `a\b`}},
+		`"\\"`:     {{kind: tokenString, lit: `\`}},
+		`"\\\""`:   {{kind: tokenString, lit: `\"`}},
+		`"a\\\"b"`: {{kind: tokenString, lit: `a\"b`}},
 		`[1, true, "a"]`: {
-			{tokenLBracket, "["},
-			{tokenNumber, "1"},
-			{tokenComma, ","},
-			{tokenTrue, "true"},
-			{tokenComma, ","},
-			{tokenString, "a"},
-			{tokenRBracket, "]"},
+			{kind: tokenLBracket, lit: "["},
+			{kind: tokenNumber, lit: "1"},
+			{kind: tokenComma, lit: ","},
+			{kind: tokenTrue, lit: "true"},
+			{kind: tokenComma, lit: ","},
+			{kind: tokenString, lit: "a"},
+			{kind: tokenRBracket, lit: "]"},
 		},
 		`{"a":1}`: {
-			{tokenLBrace, "{"},
-			{tokenString, "a"},
-			{tokenColon, ":"},
-			{tokenNumber, "1"},
-			{tokenRBrace, "}"},
+			{kind: tokenLBrace, lit: "{"},
+			{kind: tokenString, lit: "a"},
+			{kind: tokenColon, lit: ":"},
+			{kind: tokenNumber, lit: "1"},
+			{kind: tokenRBrace, lit: "}"},
 		},
 		`  { "x" : null }  `: {
-			{tokenLBrace, "{"},
-			{tokenString, "x"},
-			{tokenColon, ":"},
-			{tokenNull, "null"},
-			{tokenRBrace, "}"},
+			{kind: tokenLBrace, lit: "{"},
+			{kind: tokenString, lit: "x"},
+			{kind: tokenColon, lit: ":"},
+			{kind: tokenNull, lit: "null"},
+			{kind: tokenRBrace, lit: "}"},
 		},
 	}
 
@@ -85,13 +84,27 @@ func TestLexer(t *testing.T) {
 			if err != nil {
 				t.Fatalf("lexer(%q): unexpected error: %v", in, err)
 			}
-			if len(got) == 0 && len(want) == 0 {
-				return
-			}
-			if !reflect.DeepEqual(got, want) {
+			if !tokensKindLitEqual(got, want) {
 				t.Errorf("lexer(%q)\n got %#v\nwant %#v", in, got, want)
 			}
 		})
+	}
+}
+
+func TestLexerPos(t *testing.T) {
+	got, err := collectTokens(`  {"a":1}`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	wantPos := []int{2, 3, 6, 7, 8} // { "a" : 1 }
+	if len(got) != len(wantPos) {
+		t.Fatalf("got %d tokens, want %d: %#v", len(got), len(wantPos), got)
+	}
+	for i, pos := range wantPos {
+		if got[i].pos != pos {
+			t.Errorf("token[%d] (%s %q): pos=%d, want %d", i, got[i].kind, got[i].lit, got[i].pos, pos)
+		}
 	}
 }
 
@@ -105,6 +118,9 @@ func TestLexerEOF(t *testing.T) {
 	}
 	if tok.kind != tokenEOF {
 		t.Fatalf("empty input: got kind %v, want tokenEOF", tok.kind)
+	}
+	if tok.pos != 0 {
+		t.Errorf("empty input EOF pos=%d, want 0", tok.pos)
 	}
 
 	l.start("   \t\n")
@@ -169,6 +185,18 @@ func TestLexerInvalidNumbers(t *testing.T) {
 			}
 		})
 	}
+}
+
+func tokensKindLitEqual(got, want []token) bool {
+	if len(got) != len(want) {
+		return false
+	}
+	for i := range got {
+		if got[i].kind != want[i].kind || got[i].lit != want[i].lit {
+			return false
+		}
+	}
+	return true
 }
 
 // collectTokens returns all tokens until EOF.
