@@ -1,6 +1,6 @@
 package main
 
-import jsonparser "github.com/robert-janaszek/go-learning/json-parser"
+import "github.com/robert-janaszek/go-learning/course"
 
 func main() {
 	// course.Day1a()
@@ -16,9 +16,10 @@ func main() {
 	// course.Day4a()
 	// course.Day4b()
 	// course.Day4c()
+	course.Day4d()
 
 	// result, _ := jsonfixer.Fix(`{"a`)
 	// fmt.Println(result)
 
-	jsonparser.Parse("1e+2")
+	// jsonparser.Parse("1e+2")
 }
