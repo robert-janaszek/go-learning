@@ -26,7 +26,7 @@ func Parse(input string) (any, error) {
 	}
 
 	if tok.kind != tokenEOF {
-		return nil, fmt.Errorf("wanted EOF, found: %q", tok.lit)
+		return nil, fmt.Errorf("expected EOF, found %q at %d", tok.lit, tok.pos)
 	}
 
 	return val, nil

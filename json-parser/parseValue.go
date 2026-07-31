@@ -17,7 +17,7 @@ func parseValue(tok token, l *lexer) (any, error) {
 		num, err := strconv.ParseFloat(tok.lit, 64)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("invalid number %q at %d: %w", tok.lit, tok.pos, err)
 		}
 
 		return num, nil
@@ -29,5 +29,5 @@ func parseValue(tok token, l *lexer) (any, error) {
 		return false, nil
 	}
 
-	return nil, fmt.Errorf("incorrect token found: %s", tok.lit)
+	return nil, fmt.Errorf("expected value, found %q at %d", tok.lit, tok.pos)
 }

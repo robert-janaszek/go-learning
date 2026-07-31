@@ -1,6 +1,8 @@
 package jsonparser
 
-import "errors"
+import (
+	"fmt"
+)
 
 func parseObject(l *lexer) (any, error) {
 	obj := map[string]any{}
@@ -18,7 +20,7 @@ func parseObject(l *lexer) (any, error) {
 		return obj, nil
 	}
 
-	err = expectToken(tok, l, tokenString)
+	err = expectToken(tok, tokenString)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +31,7 @@ func parseObject(l *lexer) (any, error) {
 		return nil, err
 	}
 
-	err = expectToken(tok, l, tokenColon)
+	err = expectToken(tok, tokenColon)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +60,7 @@ func parseObject(l *lexer) (any, error) {
 		}
 
 		if tok.kind != tokenComma {
-			return nil, errors.New("expected ',' or '}', but found: " + tok.lit)
+			return nil, fmt.Errorf("expected ',' or '}', found %q at %d", tok.lit, tok.pos)
 		}
 
 		tok, err = nextToken(l)
@@ -67,7 +69,7 @@ func parseObject(l *lexer) (any, error) {
 			return nil, err
 		}
 
-		err = expectToken(tok, l, tokenString)
+		err = expectToken(tok, tokenString)
 		if err != nil {
 			return nil, err
 		}
@@ -80,7 +82,7 @@ func parseObject(l *lexer) (any, error) {
 			return nil, err
 		}
 
-		err = expectToken(tok, l, tokenColon)
+		err = expectToken(tok, tokenColon)
 		if err != nil {
 			return nil, err
 		}

@@ -23,7 +23,7 @@ func (l *lexer) next() (token, error) {
 		switch char {
 		case '"':
 			pos := l.position - 1
-			stringInternal, err := l.readString()
+			stringInternal, err := l.readString(pos)
 			return tok(tokenString, stringInternal, pos), err
 		case ' ', '\t', '\n', '\r':
 			continue
@@ -56,7 +56,7 @@ func (l *lexer) next() (token, error) {
 			return l.readKeyword()
 		}
 
-		return token{}, fmt.Errorf("unrecognized token at %d", l.position-1)
+		return token{}, fmt.Errorf("unrecognized character %q at %d", char, l.position-1)
 
 	}
 	return tok(tokenEOF, "", l.position), nil

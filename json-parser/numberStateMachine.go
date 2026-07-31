@@ -38,7 +38,7 @@ func (s *stateMachine) startOnChar(char byte) error {
 		return nil
 	}
 
-	return fmt.Errorf("incorrect token at start, found %q", char)
+	return fmt.Errorf("expected digit or '-', found %q", char)
 }
 
 func (s *stateMachine) minusOnChar(char byte) error {
@@ -51,7 +51,7 @@ func (s *stateMachine) minusOnChar(char byte) error {
 		return nil
 	}
 
-	return fmt.Errorf("incorrect token after '-', found %q", char)
+	return fmt.Errorf("expected digit after '-', found %q", char)
 }
 
 func (s *stateMachine) intZeroOnChar(char byte) (bool, error) {
@@ -65,7 +65,7 @@ func (s *stateMachine) intZeroOnChar(char byte) (bool, error) {
 	}
 
 	if char >= '0' && char <= '9' {
-		return false, fmt.Errorf("unexpected digit after zero, found: %q", char)
+		return false, fmt.Errorf("unexpected digit after leading zero, found %q", char)
 	}
 
 	return true, nil
@@ -95,7 +95,7 @@ func (s *stateMachine) dotOnChar(char byte) (bool, error) {
 		return false, nil
 	}
 
-	return false, fmt.Errorf("unexpected char after dot, found %q", char)
+	return false, fmt.Errorf("expected digit after '.', found %q", char)
 }
 
 func (s *stateMachine) fracOnChar(char byte) (bool, error) {
@@ -122,7 +122,7 @@ func (s *stateMachine) expOnChar(char byte) (bool, error) {
 		return false, nil
 	}
 
-	return false, fmt.Errorf("incorrect number, found: %q", char)
+	return false, fmt.Errorf("expected digit or sign after exponent, found %q", char)
 }
 
 func (s *stateMachine) expSignOnChar(char byte) (bool, error) {
@@ -131,8 +131,9 @@ func (s *stateMachine) expSignOnChar(char byte) (bool, error) {
 		return false, nil
 	}
 
-	return false, fmt.Errorf("incorrect number, found %q", char)
+	return false, fmt.Errorf("expected digit after exponent sign, found %q", char)
 }
+
 func (s *stateMachine) expDigitOnChar(char byte) (bool, error) {
 	if char >= '0' && char <= '9' {
 		return false, nil
@@ -180,15 +181,15 @@ func (s *stateMachine) next(char byte) (bool, error) {
 func (s *stateMachine) end() error {
 	switch s.currentState {
 	case start:
-		return errors.New("incorrect number")
+		return errors.New("invalid number")
 	case minus:
-		return errors.New("incorrect number, no digit after '-'")
+		return errors.New("expected digit after '-'")
 	case dot:
-		return errors.New("incorrect number, no digit after '.'")
+		return errors.New("expected digit after '.'")
 	case exp:
-		return errors.New("incorrect number, incorrect mathematical expression")
+		return errors.New("expected digit or sign after exponent")
 	case exp_sign:
-		return errors.New("incorrect number, incorrect mathematical expression, no digit after sign")
+		return errors.New("expected digit after exponent sign")
 	}
 
 	return nil

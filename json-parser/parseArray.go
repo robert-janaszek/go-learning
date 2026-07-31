@@ -31,7 +31,7 @@ func parseArray(l *lexer) (any, error) {
 			break
 		}
 
-		err = expectToken(tok, l, tokenComma)
+		err = expectToken(tok, tokenComma)
 		if err != nil {
 			return nil, err
 		}

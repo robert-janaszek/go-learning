@@ -1,6 +1,6 @@
 package jsonparser
 
-import "errors"
+import "fmt"
 
 func (l *lexer) readKeyword() (token, error) {
 	startingPosition := l.position - 1
@@ -28,5 +28,5 @@ func (l *lexer) readKeyword() (token, error) {
 		return tok(tokenFalse, "false", startingPosition), nil
 	}
 
-	return token{}, errors.New("unrecognized keyword: " + possibleKeyword)
+	return token{}, fmt.Errorf("unrecognized keyword %q at %d", possibleKeyword, startingPosition)
 }
