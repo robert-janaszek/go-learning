@@ -39,7 +39,7 @@ func (l *lexer) next() (token, error) {
 		}
 
 		if (char >= '0' && char <= '9') || char == '-' {
-			result, err := l.readNumber()
+			result, err := l.readNumber(char)
 
 			if err != nil {
 				return token{}, err

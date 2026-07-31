@@ -1,48 +1,33 @@
 package jsonparser
 
-import "errors"
-
-// TODO: add more defences for numbers, RFC
-func (l *lexer) readNumber() (string, error) {
-	eConsumed := false
-	dotConsumed := false
+func (l *lexer) readNumber(firstChar byte) (string, error) {
 	startingPosition := l.position - 1
+	sm := stateMachine{}
+	stop, err := sm.next(firstChar)
+
+	if err != nil {
+		return "", err
+	}
 
 	for l.position < len(l.input) {
 		char := l.input[l.position]
 		l.position++
 
-		if char >= '0' && char <= '9' {
-			continue
+		stop, err = sm.next(char)
+		if err != nil {
+			return "", err
 		}
 
-		switch char {
-		case 'e', 'E':
-			if eConsumed {
-				return "", errors.New("incorrect number, found 2 'e'")
-			}
-
-			eConsumed = true
-
-			if l.position < len(l.input) {
-				nextChar := l.input[l.position]
-
-				switch nextChar {
-				case '-', '+':
-					l.position++
-				}
-			}
-
-			continue
+		if stop {
+			l.position--
+			break
 		}
+	}
 
-		if char == '.' && !dotConsumed {
-			dotConsumed = true
-			continue
-		}
+	err = sm.end()
 
-		l.position--
-		break
+	if err != nil {
+		return "", err
 	}
 
 	return l.input[startingPosition:l.position], nil

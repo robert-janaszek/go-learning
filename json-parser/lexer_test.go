@@ -140,6 +140,37 @@ func TestLexerErrors(t *testing.T) {
 	}
 }
 
+func TestLexerInvalidNumbers(t *testing.T) {
+	cases := []string{
+		`-`,
+		`01`,
+		`-01`,
+		`00`,
+		`1.`,
+		`0.`,
+		`-1.`,
+		`.5`,
+		`1e`,
+		`1E`,
+		`1e+`,
+		`1e-`,
+		`-1e`,
+		`1.e2`,
+		`1e.2`,
+		`0e`,
+		`0e+`,
+	}
+
+	for _, in := range cases {
+		t.Run(in, func(t *testing.T) {
+			_, err := collectTokens(in)
+			if err == nil {
+				t.Fatalf("lexer(%q): want error for invalid number", in)
+			}
+		})
+	}
+}
+
 // collectTokens returns all tokens until EOF.
 // Lexical errors are returned as err (not silently treated as EOF).
 func collectTokens(input string) ([]token, error) {
