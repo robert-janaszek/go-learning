@@ -16,7 +16,8 @@ func main() {
 	// course.Day4a()
 	// course.Day4b()
 	// course.Day4c()
-	course.Day4d()
+	// course.Day4d()
+	course.Day5a()
 
 	// result, _ := jsonfixer.Fix(`{"a`)
 	// fmt.Println(result)
