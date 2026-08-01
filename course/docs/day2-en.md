@@ -1,117 +1,105 @@
-Here are **20 exercises for Day 2: Structs, Methods, and No Classes**.
+Here are **20 exercises for Day 2: Variables, Types, and Pointers** that take you from the basics of variables and types, through memory manipulation, to the nuances of passing data into functions.
 
-Your goal today: master composition over inheritance and learn to write methods attached to structs with the right receiver (*value* vs *pointer receiver*).
-
----
-
-## Part 1: Defining and Initializing Structs (Exercises 1–5)
-
-### Exercise 1: Basic struct
-
-Define a `Book` struct with fields: `Title` (string), `Author` (string), `Pages` (int), `IsRead` (bool). Create an instance of this struct in `main()` using field names (*struct literal*) and print it.
-
-### Exercise 2: Different ways to initialize
-
-Create 3 instances of the `Book` struct:
-
-1. Using field names (`Book{Title: "...", ...}`).
-2. Without field names (watch the order!).
-3. An empty instance (`b := Book{}`) and fill the fields on separate lines (`b.Title = "..."`).
-
-### Exercise 3: Pointer to a struct and factory function (Constructor Pattern)
-
-Go has no `new` keyword in the class sense. You create functions like `NewBook`. Write a function `NewBook(title, author string, pages int) *Book` that returns a **pointer** to a newly created struct.
-
-### Exercise 4: Anonymous struct (Ad-hoc Struct)
-
-Often in Go (e.g. in tests or when extracting JSON) you create one-off structs. Create an anonymous struct with fields `ConfigName` and `Port`, initialize it immediately with values, and print it.
-
-### Exercise 5: Comparing structs
-
-Create two `Book` instances with identical values. Check with `if b1 == b2` whether Go can compare them. Then add a slice field `Tags []string` to the struct and see why the code no longer compiles (structs with reference types are not comparable with `==`).
+They are split into sections so you can gradually build intuition around pointers.
 
 ---
 
-## Part 2: Methods – Pointer vs Value Receiver (Exercises 6–10)
+## Part 1: Variables, Types, and Declarations (Exercises 1–5)
 
-### Exercise 6: First method with a Value Receiver
+### Exercise 1: Different ways to declare
 
-Add a `Summary() string` method to the `Book` struct. The method should return a string in the format `"Title" by Author (X pages)`. Use a *value receiver* `(b Book)`.
+Declare a variable `age` of type `int` in 3 ways: using `var` with an explicit type, using `var` with type inference, and using the short declaration `:=`. Print their types with `fmt.Printf("%T\n", age)`.
 
-### Exercise 7: Method with a Pointer Receiver (State modification)
+### Exercise 2: Type conversion (No implicit casting)
 
-Add a `MarkAsRead()` method to `Book`. Think: should the method receiver be a pointer `(b *Book)` or a value `(b Book)`? Test in `main()` by calling this method on a book that had `IsRead = false`.
+In JS you can write `5 + "5"`. In Go there is no automatic type casting. Create a variable `a int = 42` and `b float64 = 3.14`. Convert `a` to `float64`, add it to `b`, and assign the result to a new variable.
 
-### Exercise 8: Calling a pointer-receiver method on a value
+### Exercise 3: Zero Values
 
-Create a variable `b := Book{Title: "Go in Action"}` (a plain value, not a pointer). Call the `MarkAsRead()` method from Exercise 7 on it. Notice that Go **automatically takes the address** (`(&b).MarkAsRead()`) — you don't need to turn the variable into a pointer yourself.
+In JS an uninitialized variable is `undefined`. Declare with `var` without assigning a value: `int`, `float64`, `string`, `bool`, and a pointer `*int`. Print them and check what their default values (*zero values*) are.
 
-### Exercise 9: Methods on custom (basic) types
+### Exercise 4: Constants (`const`) and `iota`
 
-In Go you can attach methods not only to structs! Define a custom type: `type Celsius float64`. Add a `ToFahrenheit() float64` method to it. Test in `main()`.
+Create a constant block representing the days of the week (from `Monday` to `Sunday`) using the `iota` generator. Print their numeric values to the console.
 
-### Exercise 10: Method that mutates a custom type
+### Exercise 5: Shadowing
 
-Add an `Add(degrees float64)` method to the `Celsius` type. Choose the appropriate receiver so the method actually modifies the temperature value it was called on.
-
----
-
-## Part 3: Composition and Embedding Instead of Inheritance (Exercises 11–15)
-
-### Exercise 11: Plain nested structs
-
-Create an `Address` struct (`City string`, `ZipCode string`). Create a `User` struct with fields `Name string` and `Addr Address`. Initialize a `User` and print the user's city (`u.Addr.City`).
-
-### Exercise 12: Anonymous Struct Embedding (Promoted fields)
-
-Modify `User` so that the `Address` field is **anonymous** (an embedded struct):
-
-```go
-type User struct {
-    Name string
-    Address // No field name, just the type!
-}
-
-```
-
-Check in `main()` how *field promotion* works — access the city by simply writing `u.City`.
-
-### Exercise 13: Overriding fields and methods (Shadowing in composition)
-
-Add a `FullAddress() string` method to `Address`. Then add your own `FullAddress() string` method to `User` that returns the name and address. Call both in `main()` and see how Go resolves name conflicts.
-
-### Exercise 14: Embedding a pointer to a struct
-
-Create an `Engine` struct (`HorsePower int`). Create a `Car` struct with an embedded `*Engine` pointer. Check what happens when you call a method on `Car` if `Engine` is `nil`.
-
-### Exercise 15: Composition from multiple structs
-
-Create two small structs: `Logger` (method `Log(msg string)`) and `Database` (method `Connect()`). Create a `Server` struct that embeds **both** of these structs. Call `server.Log()` and `server.Connect()`.
+Create a variable `x := 10` in an outer block. Open a new code block `{ ... }`, declare `x := 20` inside it, and print `x`. Outside the block, print `x` again. Analyze what happened.
 
 ---
 
-## Part 4: Practical Patterns, JSON, and Tags (Exercises 16–20)
+## Part 2: Pointer Basics – Addresses and Dereferencing (Exercises 6–10)
 
-### Exercise 16: Struct Tags
+### Exercise 6: Taking an address (`&`)
 
-Define a `Product` struct with fields `ID int`, `Name string`, `Price float64`. Add JSON tags, e.g. `json:"product_id"`. Use `json.Marshal(p)` from the `encoding/json` package to turn the struct into JSON bytes and print the result to the console (`string(bytes)`).
+Create a variable `score := 100`. Create a variable `ptr` that holds the address of `score`. Print the value of `score`, the address of `score`, and the type of `ptr`.
 
-### Exercise 17: Hiding fields in JSON (`json:"-"` and `omitempty`)
+### Exercise 7: Dereferencing (`*`)
 
-Add fields to the `Product` struct:
+Using the pointer `ptr` from Exercise 6, change the value of `score` to `200` **using only the pointer `ptr`** (dereference operator `*ptr = ...`). Print `score`.
 
-* `InternalCode string` — should be ignored by JSON (`json:"-"`).
-* `Discount float64` — should be omitted from JSON when equal to 0 (`json:"discount,omitempty"`).
-Check how `json.Marshal` behaves.
+### Exercise 8: Two pointers to one variable
 
-### Exercise 18: Unmarshaling (JSON -> Struct)
+Create `x := 50`. Create two pointers `p1` and `p2`, both pointing to `x`. Change the value via `p1` to `100`, then print the value obtained through `*p2`.
 
-Create a variable with a JSON string: `jsonData := []byte('{"name":"Laptop", "price": 2500}')`. Use `json.Unmarshal(jsonData, &p)` to load the data into a `Product` struct. Careful: why must you pass `&p` (a pointer), and not just `p`?
+### Exercise 9: Nil pointer
 
-### Exercise 19: Shopping cart with a total method
+Declare a pointer `var p *int` (without assigning an address). Check with `if p == nil` whether the pointer is empty. See what happens (and what error the runtime reports) if you try `*p = 10` without initialization (a *nil pointer dereference panic*).
 
-Warm-up before the project: Create `CartItem` (`Product Product`, `Quantity int`). Create `Cart` with an `Items []CartItem` field. Add methods: `AddItem(p Product, qty int)` and `Total() float64`.
+### Exercise 10: Double pointer (`**int`)
 
-### Exercise 20: Encapsulation and private fields
+Create a variable `val := 42`. Create a pointer `p` pointing to `val`. Create a pointer to a pointer `pp` (type `**int`) pointing to `p`. Read the value `42` using only `pp`.
 
-Create a sub-package in a `bank/` folder. Define an `Account` struct in it with a **private** field `balance float64`. Expose public methods `Deposit(amount float64)`, `Withdraw(amount float64) error`, and `Balance() float64`. Verify in `main.go` that you cannot modify the `balance` field directly.
+---
+
+## Part 3: Pointers in Functions (Exercises 11–15)
+
+### Exercise 11: Swap
+
+Write a function `swap(a, b *int)` that swaps the values of two variables. Test it in `main()` with two variables `x := 1` and `y := 2`.
+
+### Exercise 12: Modifying a string
+
+Write a function `uppercase(s *string)` that takes a pointer to a string and changes its content to uppercase (use `strings.ToUpper`). Check the result in `main()`.
+
+### Exercise 13: Safe division with an optional result
+
+Write a function `safeDivide(a, b float64, result *float64) bool`. If `b == 0`, the function returns `false`. Otherwise, it writes the result at the address `result` and returns `true`.
+
+### Exercise 14: Counter (Incrementer)
+
+Create a structure/variable representing a counter. Write a function `increment(val *int)` that increases the value by 1 on each call. Call it 3 times in a loop.
+
+### Exercise 15: Function returning a pointer
+
+Write a function `createInt(val int) *int` that creates a local variable inside the function and returns its address `&localVal`.
+*(Context for C/C++ programmers: In Go this is fully safe! The compiler will perform Escape Analysis and allocate that variable on the heap instead of the stack).*
+
+---
+
+## Part 4: Pointers and Structs (Exercises 16–20)
+
+### Exercise 16: Player struct and state modification
+
+Define a `Player` struct with fields `Name string` and `Health int`. Write a function `takeDamage(p *Player, amount int)` that decreases the player's health points.
+
+### Exercise 17: Value receiver vs Pointer receiver
+
+Add two methods to the `Player` struct:
+
+1. `HealValue(amount int)` with a *value receiver* `(p Player)`
+2. `HealPointer(amount int)` with a *pointer receiver* `(p *Player)`
+Call both in `main()` and observe which method actually heals the player.
+
+### Exercise 18: Automatic dereferencing with structs
+
+Create a pointer to a struct `p := &Player{Name: "Gopher", Health: 100}`. Change its `Health` field to `90` by simply writing `p.Health = 90`. Notice that in Go you don't need to write `(*p).Health = 90` — the language does this automatically!
+
+### Exercise 19: Optional struct fields (JS/TS concept)
+
+In TypeScript you have optional fields `age?: number` (which can be `undefined`). In Go this is done with pointers!
+Create a `User` struct with fields `Name string` and `Age *int`. Create one user without an age (`Age = nil`) and one with an age.
+
+### Exercise 20: Memory leak / Looping over structs
+
+Create a slice of structs `[]Player`. Iterate over it with `for _, player := range players`. Try changing `player.Health = 0` inside the loop. Check why this **doesn't work** (the `range` loop variable is only a copy) and how to fix it using indices `players[i].Health = 0`.

@@ -1,125 +1,118 @@
-Here are **20 exercises for Day 5: Packages, Project Structure, and the Standard Library**.
+Here are **20 exercises for Day 5: Error Handling (`if err != nil`), the `errors` Package, and No Exceptions**.
 
-Today you move from single-file scripts to building **real, structured Go applications**. You will master package organization, encapsulation (field visibility), and key standard library packages (`net/http`, `context`, `slog`, `time`).
+Your goal today: unlearn `try/catch/throw` thinking, master the idioms of treating errors as values (*errors are values*), and learn the modern error wrapping pattern introduced in newer Go versions.
 
 ---
 
-## Part 1: Packages, Visibility, and Project Structure (Exercises 1–5)
+## Part 1: Basics and Returning Errors (Exercises 1–5)
 
-### Exercise 1: Your first sub-package
+### Exercise 1: Your first error (`errors.New`)
 
-Create a `config/` folder with a `config.go` file declaring `package config`. Define an `AppConfig` struct with a `Port int` field. Import this package in the main `main.go` file and use the struct.
+Write a function `ValidateAge(age int) error`. If age is less than 0 or greater than 120, return an error created with `errors.New("invalid age")`. Otherwise return `nil`. Handle the result in `main()`.
 
-### Exercise 2: Public vs Private (Capitalization)
+### Exercise 2: Formatting an error with context (`fmt.Errorf`)
 
-In the `config` package, create two functions: `Load()` (public) and `parseEnv()` (private). See what happens when you try to call `config.parseEnv()` from `main.go`.
+Modify the function from Exercise 1 so the error message includes the passed value, e.g. `fmt.Errorf("age %d is out of range [0-120]", age)`.
 
-### Exercise 3: Encapsulation and Getters/Setters
+### Exercise 3: Happy Path on the Left (Clean code structure)
 
-In a new `user/` package, define a `User` struct with a private `email string` field. Expose public methods `SetEmail(e string) error` (with `@` validation) and `Email() string` (getter).
+Write an order-processing function `ProcessOrder(id int, amount float64) error`. Perform 3 validations: ID > 0, amount > 0, amount < 10000. Write the code so that on error you return immediately (`if err != nil { return err }`), avoiding nested `else` blocks.
 
-> **Go idiom tip:** Go does not use a `Get` prefix for getters. Instead of `GetEmail()`, just use `Email()`.
+### Exercise 4: Sentinel Errors (Error constants/variables)
 
-### Exercise 4: Import aliases and avoiding conflicts
+Declare package-level error variables (naming convention: `Err...`):
 
-Imagine you import two packages with the same final name (e.g. `math/rand` and `crypto/rand`). Use an import alias in `main.go` so you can use both at once:
+* `var ErrNotFound = errors.New("item not found")`
+* `var ErrPermissionDenied = errors.New("permission denied")`
+Write a function `FindUser(id int) (*User, error)` that returns `ErrNotFound` when ID is 0. Check this error in `main()` with a plain comparison `if err == ErrNotFound`.
+
+### Exercise 5: Ignoring an error (What `_` does)
+
+Call a standard library function (e.g. `strconv.Atoi("123")`) that returns `(int, error)`. Ignore the error with the `_` operator. Consider why linters (e.g. `golangci-lint`) treat this as an anti-pattern in production code.
+
+---
+
+## Part 2: Custom Error Types and Structs (Exercises 6–10)
+
+### Exercise 6: Struct as an error
+
+Create your own error struct `ValidationError`:
 
 ```go
-import (
-    crand "crypto/rand"
-    mrand "math/rand"
-)
+type ValidationError struct {
+    Field   string
+    Message string
+}
 
 ```
 
-### Exercise 5: Blank imports (Side-effects `_`)
+Implement the `error` interface for it (an `Error() string` method that nicely formats the field and message).
 
-See how imports work when you only need side effects (e.g. registering a database driver): `import _ "[github.com/lib/pq](https://github.com/lib/pq)"`. Learn what the special `init()` function is for in packages.
+### Exercise 7: Returning your own struct as `error`
 
----
+Write a function `RegisterUser(email, password string) error`. If the email does not contain `@`, return `&ValidationError{Field: "email", Message: "missing @"}`. Notice that the function returns the interface type `error`!
 
-## Part 2: Context (`context.Context`) – A Core Go Concept (Exercises 6–10)
+### Exercise 8: Extracting your own error (Type Assertion)
 
-### Exercise 6: Creating a base context
+In `main()`, call `RegisterUser` with a bad email. Receive the error as type `error` and use a type assertion (`ve, ok := err.(*ValidationError)`) to access the concrete `Field` and `Message` fields.
 
-In Go, `context.Context` carries cancellation signals, deadlines, and request metadata. Create a base context with `ctx := context.Background()`.
+### Exercise 9: The `nil` trap with struct types (Key nuance!)
 
-### Exercise 7: Passing values in context (`context.WithValue`)
+Write a function `badValidate() error` in which you declare a pointer to your struct `var customErr *ValidationError = nil`, then return `customErr`. Check in `main()` why the condition `if err != nil` evaluates to `true`! *(Hint: an interface holding type `*ValidationError` and a `nil` value is itself NOT equal to `nil`)*.
 
-Create a function `processRequest(ctx context.Context)`. Add a request ID to the context: `ctx = context.WithValue(ctx, "request_id", "abc-123")`. Inside the function, extract that value and check its type with a type assertion.
+### Exercise 10: Correctly returning `nil` from custom structs
 
-### Exercise 8: Cancelling operations (`context.WithCancel`)
-
-Create a context with a cancel function: `ctx, cancel := context.WithCancel(context.Background())`. Run a simulated long operation in a `select` loop listening on `<-ctx.Done()`. Call `cancel()` and observe how the operation stops immediately.
-
-### Exercise 9: Timeouts (`context.WithTimeout`)
-
-Create a context that cancels automatically after 100 milliseconds: `ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)` (always remember `defer cancel()!`). Simulate a 500 ms operation and handle interruption due to timeout.
-
-### Exercise 10: Passing context as the FIRST argument
-
-By Go convention, if a function takes a context, **it must be the first argument**: `func FetchData(ctx context.Context, id string) error`. Coming from TS (where timeouts or options often go at the end), adapt your functions to the Go standard.
+Fix the bug from Exercise 9. Analyze why you should always return an explicit `nil` literal (`return nil`) instead of a nil pointer variable typed as an error.
 
 ---
 
-## Part 3: Building an HTTP Server (`net/http`) (Exercises 11–15)
+## Part 3: Error Wrapping and the Modern `errors` Package (Exercises 11–15)
 
-### Exercise 11: The simplest HTTP server
+### Exercise 11: Wrapping errors with the `%w` verb
 
-Create an HTTP server without external frameworks (like Express in Node.js). Use `http.HandleFunc` with the new routing introduced in Go 1.22:
+Write a function `ReadConfig(path string) error`. Call `os.ReadFile(path)` inside it. If you get an error, return it wrapped with your own context:
+`return fmt.Errorf("failed to read config file %s: %w", path, err)`.
 
-```go
-http.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-    w.Write([]byte("OK"))
-})
-http.ListenAndServe(":8080", nil)
+### Exercise 12: Checking errors with `errors.Is`
 
-```
+Write a function that calls `ReadConfig` with a nonexistent path. In `main()`, use `errors.Is(err, os.ErrNotExist)` instead of plain `==` to check whether the underlying error (inside the wrap chain) is a file-not-found error.
 
-### Exercise 12: Serving JSON data
+### Exercise 13: Unwrapping errors with `errors.As`
 
-Write a `GET /api/user` handler that creates a `User` struct, sets the `w.Header().Set("Content-Type", "application/json")` header, and serializes data directly to the response stream with `json.NewEncoder(w).Encode(user)`.
+Use `errors.As` to safely extract an `*os.PathError` from a wrapped error returned by file operations. Print that error's `Path` field.
 
-### Exercise 13: Reading JSON from the body (`POST`)
+### Exercise 14: Joining multiple errors (`errors.Join` - Go 1.20+)
 
-Write a `POST /api/user` handler that decodes the request body into a struct with `json.NewDecoder(r.Body).Decode(&user)`. Handle errors for invalid JSON.
+Write a form-validation function that collects all validation errors into a `[]error` slice and finally returns a combined error with `errors.Join(err1, err2, err3)`. Check how the printed error looks.
 
-### Exercise 14: Path parameters (Path Values in Go 1.22+)
+### Exercise 15: Layered error wrapping in a multi-tier architecture
 
-Write a `GET /users/{id}` handler that reads a variable from the URL using the built-in method `id := r.PathValue("id")`.
+Create a 3-layer call chain: `Repository` → `Service` → `Handler`.
 
-### Exercise 15: Simple HTTP middleware
-
-Middleware in Go is a function that takes an `http.Handler` and returns an `http.Handler`. Write a `LoggingMiddleware` that measures how long each HTTP request takes (use `time.Now()` and `time.Since()`) and prints the method and path.
+1. `Repository` returns `ErrNotFound`.
+2. `Service` wraps it: `fmt.Errorf("user service: %w", err)`.
+3. `Handler` checks `errors.Is(err, ErrNotFound)` and returns HTTP status 404.
 
 ---
 
-## Part 4: Modern Logging (`slog`) and Time (`time`) (Exercises 16–20)
+## Part 4: Panic, Recover, and Exceptional Situations (Exercises 16–20)
 
-### Exercise 16: Structured logs with `log/slog`
+### Exercise 16: When to use `panic`?
 
-Since Go 1.21, the standard library includes the `slog` package. Instead of plain `fmt.Println`, use `slog.Info("user logged in", "user_id", 42, "role", "admin")`.
+In Go, `panic` is used extremely rarely (equivalent to a critical application abort, e.g. a missing config file at startup). Write a function `MustParseURL(rawURL string)` that does `panic("invalid URL")` if the URL is empty.
 
-### Exercise 17: Logging in JSON format
+### Exercise 17: Catching a panic (`defer` + `recover`)
 
-Configure `slog` to emit logs in JSON format (ideal for production and Datadog/Grafana):
+Write a function `SafeExecute(fn func())` that calls the passed function `fn`. Use a `defer` block and `recover()` inside it to catch a possible panic and prevent the whole application from crashing.
 
-```go
-logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-slog.SetDefault(logger)
+### Exercise 18: Converting `panic` to `error`
 
-```
+Modify `SafeExecute` so it returns an `error`. If a panic occurred inside, turn the recovered value (`recover()`) into a regular `error` and return it.
 
-### Exercise 18: Working safely with time (`time.Time`)
+### Exercise 19: Cleaning up resources with `defer` on errors
 
-In JS, date operations can be a nightmare. In Go you have a powerful `time` package. Create two dates, subtract them (`diff := t2.Sub(t1)`), get a `time.Duration`, and check how many seconds or milliseconds that is.
+Open a file with `file, err := os.Open(...)`. Right after checking the error, add `defer file.Close()`. Call a helper function that returns an error and make sure the file is closed before leaving the main function.
 
-### Exercise 19: Formatting and parsing dates
+### Exercise 20: Error-logging middleware
 
-In Go, dates are formatted using a **specific reference time**: `Mon Jan 2 15:04:05 MST 2006` (remember the digit layout: 1 2 3 4 5 6 7). Format the current time as `YYYY-MM-DD` using the pattern `"2006-01-02"`.
-
-### Exercise 20: Ticker and Timer
-
-Use `time.NewTicker(1 * time.Second)` to create a loop that runs an action every second (e.g. printing status to the console). Remember to stop the ticker with `defer ticker.Stop()`.
-
----
+Write a simple wrapper function (middleware): `ExecuteWithLogging(fn func() error)`. This function calls `fn()`, checks whether an error was returned, and if so — logs it to the console with a timestamp using the standard `log` package.

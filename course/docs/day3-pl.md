@@ -1,114 +1,119 @@
-Oto **20 zadań na Dzień 4: Interfejsy (`Interfaces`), Duck Typing i Polimorfizm**.
+Oto **20 zadań na Dzień 3: Struktury (`Structs`), Metody i Brak Klas**.
 
-Twój cel na dziś: zrozumieć, dlaczego interfejsy w Go definiuje się po stronie *konsumenta* danych, jak działają interfejsy niejawne (implicit) oraz jak pisać czysty, luźno powiązany kod bez klas i dziedziczenia.
-
----
-
-## Część 1: Podstawy Interfejsów i Niejawna Implementacja (Zadania 1–5)
-
-### Zadanie 1: Twój pierwszy interfejs
-
-Zdefiniuj interfejs `Stringer` posiadający jedną metodę: `String() string`. Stwórz strukturę `User` (`Name string`, `Age int`) i zaimplementuj dla niej metodę `String() string`. Zauważ, że **nie używasz żądnego słowa kluczowego typu `implements**`.
-
-### Zadanie 2: Polimorfizm w funkcji
-
-Napisz funkcję `PrintInfo(s Stringer)`, która przyjmuje cokolwiek, co spełnia interfejs `Stringer`, i wywołuje na tym metodę `String()`. Wywołaj ją w `main()` z instancją `User`.
-
-### Zadanie 3: Wiele struktur spełniających ten sam interfejs
-
-Stwórz drugą strukturę `Book` (`Title string`, `Author string`) i również zaimplementuj dla niej metodę `String() string`. Przekaż instancję `Book` do tej samej funkcji `PrintInfo`.
-
-### Zadanie 4: Wartość domyślna interfejsu (`nil interface`)
-
-Zadeklaruj zmienną typu interfejsowego: `var s Stringer` bez przypisywania do niej żadnej struktury. Sprawdź warunkiem `if s == nil`, czy jest pusta. Zobacz, co się stanie, jeśli spróbujesz wywołać `s.String()` na pustym interfejsie.
-
-### Zadanie 5: Wytwórnia/Lista interfejsów
-
-Stwórz wycinek (slice) elementów typu interfejsowego: `items := []Stringer{user, book}`. Iteruj po nim pętlą `for _, item := range items` i wywołaj `item.String()` dla każdego z nich.
+Twój cel na dziś: opanować kompozycję zamiast dziedziczenia oraz nauczyć się pisać metody przyczepiane do struktur z odpowiednim odbiorcą (*value* vs *pointer receiver*).
 
 ---
 
-## Część 2: Pointer Receiver vs Value Receiver w Interfejsach (Zadania 6–10)
+## Część 1: Definiowanie i Inicjalizacja Struktur (Zadania 1–5)
 
-### Zadanie 6: Interfejs z Pointer Receiverem – Pułapka rzutowania
+### Zadanie 1: Podstawowa struktura
 
-Stwórz interfejs `Saver` z metodą `Save() error`. Stwórz strukturę `Document` i zaimplementuj metodę `Save()` używając **pointer receivera** `(d *Document)`.
+Zdefiniuj strukturę `Book` z polami: `Title` (string), `Author` (string), `Pages` (int), `IsRead` (bool). Utwórz instancję tej struktury w `main()` podając nazwy pól (*struct literal*) i wyświetl ją.
 
-### Zadanie 7: Próba przypisania wartości (Sprawdź błąd kompilatora!)
+### Zadanie 2: Różne sposoby inicjalizacji
 
-Spróbuj przypisać do interfejsu zwykłą wartość: `var s Saver = Document{}`. Zobacz błąd kompilatora! Dlaczego musisz przekazać wskaźnik `var s Saver = &Document{}`? *(To kluczowy niuans w Go!)*.
+Utwórz 3 instancje struktury `Book`:
 
-### Zadanie 8: Interfejs z Value Receiverem
+1. Używając nazw pól (`Book{Title: "...", ...}`).
+2. Bez nazw pól (uważaj na kolejność!).
+3. Pustą instancję (`b := Book{}`) i uzupełnij pola w osobnych liniach (`b.Title = "..."`).
 
-Stwórz drugą strukturę `Note` i zaimplementuj `Save()` z **value receiverem** `(n Note)`. Sprawdź, czy do `Saver` możesz przypisać zarówno `Note{}` (wartość), jak i `&Note{}` (wskaźnik).
+### Zadanie 3: Wskaźnik do struktury i funkcja fabrykująca (Constructor Pattern)
 
-### Zadanie 9: Standardowy interfejs `io.Reader` i `io.Writer`
+W Go nie ma słowa `new` w kontekście klas. Tworzy się funkcje typu `NewBook`. Napisz funkcję `NewBook(title, author string, pages int) *Book`, która zwraca **wskaźnik** do nowo utworzonej struktury.
 
-Go ma genialne wbudowane interfejsy. Zapoznaj się z `io.Writer` (`Write(p []byte) (n int, err error)`). Napisz funkcję `WriteHello(w io.Writer)`, która zapisuje bajty `"Hello Go"` do cokolwiek, co przyjmuje ten interfejs (np. `os.Stdout` lub `bytes.Buffer`).
+### Zadanie 4: Anonimowa struktura (Ad-hoc Struct)
 
-### Zadanie 10: Zapis do pliku i do konsoli tym samym kodem
+Często w Go (np. w testach lub przy wyciąganiu JSON-a) tworzy się struktury jednorazowe. Stwórz anonimową strukturę zawierającą pola `ConfigName` oraz `Port`, zainicjalizuj ją od razu wartościami i wyświetl.
 
-Użyj funkcji `WriteHello` z Zadania 9 dwa razy: raz przekazując `os.Stdout` (wypisanie w konsoli), a drugi raz przekazując plik utworzony przez `os.Create("test.txt")`. Zauważ siłę polimorfizmu bez tworzenia skomplikowanych hierarchii klas!
+### Zadanie 5: Porównywanie struktur
 
----
-
-## Część 3: Type Assertion, Type Switch i Empty Interface (Zadania 11–15)
-
-### Zadanie 11: Pusty interfejs (`any` / `interface{}`)
-
-W Go 1.18 wprowadzono alias `any` (odpowiednik `interface{}`). Odpowiada on typowi `unknown` w TypeScript. Stwórz funkcję `Describe(i any)`, która przyjmuje dowolny typ i go drukuje.
-
-### Zadanie 12: Type Assertion (Asercja Typu)
-
-Mając zmienną `var val any = "hello Go"`, wyciągnij z niej oryginalny typ `string` za pomocą rzutowania: `s := val.(string)`. Wydrukuj długość tego stringa (`len(s)`).
-
-### Zadanie 13: Bezpieczna Asercja Typu (Wzorzec `val, ok`)
-
-Co się stanie, jeśli zrobisz `num := val.(int)` na zmiennej trzymającej stringa? (Aplikacja się wyłoży!). Napisz bezpieczną wersję używając składni `n, ok := val.(int)` i obsłuż przypadek, gdy `ok == false`.
-
-### Zadanie 14: Type Switch (Odpowiednik `match` / `switch typeof`)
-
-Napisz funkcję `ProcessInput(v any)`, która używa składni `switch v.(type)` do sprawdzenia typu przekazanego parametru (`int`, `string`, `bool`, `Player`). Dla każdego typu wypisz odpowiedni komunikat.
-
-### Zadanie 15: Wyciąganie wartości ze struktury ukrytej za interfejsem
-
-Stwórz interfejs `Payer`. Stwórz strukturę `CreditCard` posiadającą unikalne pole `CardNumber string`. Przypisz `CreditCard` do zmiennej typu `Payer`. Użyj asercji typu, aby wydobyć `CardNumber`.
+Stwórz dwie instancje `Book` o identycznych wartościach. Sprawdź warunkiem `if b1 == b2`, czy Go potrafi je porównać. Następnie dodaj do struktury pole typu slice `Tags []string` i sprawdź, dlaczego kod przestał się kompilować (struktury z typami referencyjnymi nie są porównywalne operatorem `==`).
 
 ---
 
-## Część 4: Kompozycja Interfejsów i Dobre Praktyki (Zadania 16–20)
+## Część 2: Metody – Pointer vs Value Receiver (Zadania 6–10)
 
-### Zadanie 16: Łączenie interfejsów (Interface Embedding)
+### Zadanie 6: Pierwsza metoda z Value Receiverem
 
-Zdefiniuj dwa małe interfejsy:
+Dodaj do struktury `Book` metodę `Summary() string`. Metoda ma zwracać napis w formacie `"Title" by Author (X pages)`. Zastosuj *value receiver* `(b Book)`.
 
-1. `Reader` z metodą `Read() string`
-2. `Writer` z metodą `Write(data string)`
-Stwórz trzeci interfejs `ReadWriter`, który **osadza w sobie oba te interfejsy**.
+### Zadanie 7: Metoda z Pointer Receiverem (Modyfikacja stanu)
 
-### Zadanie 17: Złota zasada Go: "Kompaktowe interfejsy"
+Dodaj do `Book` metodę `MarkAsRead()`. Przemyśl: czy odbierak metody powinien być wskaźnikiem `(b *Book)` czy wartością `(b Book)`? Przetestuj w `main()`, wywołując tę metodę na książce, która miała `IsRead = false`.
 
-W TypeScript często tworzy się gigantyczne interfejsy z kilkunastoma metodami. W Go idealny interfejs ma **1 lub 2 metody**. Stwórz strukturę `FileHandler`, która spełnia interfejs `ReadWriter` z Zadania 16.
+### Zadanie 8: Wywołanie metody z pointer receiverem na wartości
 
-### Zadanie 18: Interfejs definiowany po stronie odbiorcy (Consumer-defined Interface)
+Stwórz zmienną `b := Book{Title: "Go in Action"}` (zwykła wartość, nie wskaźnik). Wywołaj na niej metodę `MarkAsRead()` z Zadania 7. Zauważ, że Go **automatycznie pobiera adres** (`(&b).MarkAsRead()`) – nie musisz zamieniać zmiennej na wskaźnik.
 
-To najważniejszy koncept w Go. Stwórz pod-pakiet `store/` ze strukturą `PostgresStore` posiadającą metodę `GetUsers() []string`. W pakiecie `main` zdefiniuj interfejs `UserGetter` i użyj go w usłudze `UserService`. *(Zauważ: `PostgresStore` w ogóle nie wie o istnieniu interfejsu w `main`!)*.
+### Zadanie 9: Metody na typach własnych (podstawowych)
 
-### Zadanie 19: Łatwe mockowanie w testach (preview)
+W Go metody można przyczepiać nie tylko do struktur! Zdefiniuj własny typ: `type Celsius float64`. Dodaj do niego metodę `ToFahrenheit() float64`. Przetestuj w `main()`.
 
-Dzięki podejściu z Zadania 18, stwórz w `main` strukturę `MockStore` implementującą `GetUsers() []string` ze sztucznymi danymi. Podmień `PostgresStore` na `MockStore` w `UserService`.
+### Zadanie 10: Metoda zmieniająca typ własny
 
-### Zadanie 20: Domyślne interfejsy ze standardowej biblioteki (`error`)
+Do typu `Celsius` dodaj metodę `Add(degrees float64)`. Wybierz odpowiedni receiver, aby metoda faktycznie modyfikowała wartość temperatury, na której została wywołana.
 
-Czy wiesz, że wbudowany typ `error` w Go to po prostu interfejs z jedną metodą?
+---
+
+## Część 3: Kompozycja i Osadzanie (Embedding) Zamiast Dziedziczenia (Zadania 11–15)
+
+### Zadanie 11: Zwykłe zagnieżdżenie struktur
+
+Stwórz strukturę `Address` (`City string`, `ZipCode string`). Stwórz strukturę `User` z polami `Name string` oraz `Addr Address`. Zainicjalizuj `User` i wyświetl miasto użytkownika (`u.Addr.City`).
+
+### Zadanie 12: Anonymous Struct Embedding (Promowane pola)
+
+Zmodyfikuj `User` tak, aby pole `Address` było **anonimowe** (tzw. osadzone/embedded struct):
 
 ```go
-type error interface {
-    Error() string
+type User struct {
+    Name string
+    Address // Brak nazwy pola, tylko typ!
 }
 
 ```
 
-Stwórz własną strukturę `CustomError` (`Code int`, `Message string`), zaimplementuj dla niej metodę `Error() string` i zwróć ją jako zwykły `error` z funkcji.
+Sprawdź w `main()`, jak działa tzw. *field promotion* – uzyskaj dostęp do miasta pisząc po prostu `u.City`.
+
+### Zadanie 13: Nadpisywanie pól i metod (Shadowing w kompozycji)
+
+Dodaj do `Address` metodę `FullAddress() string`. Następnie dodaj do `User` własną metodę `FullAddress() string`, która zwraca imię i adres. Wywołaj obie w `main()` i sprawdź, jak Go rozwiązuje konflikty nazw.
+
+### Zadanie 14: Osadzanie wskaźnika do struktury
+
+Stwórz strukturę `Engine` (`HorsePower int`). Stwórz strukturę `Car` z osadzonym wskaźnikiem `*Engine`. Sprawdź, co się stanie, gdy wywołasz metodę na `Car`, jeśli `Engine` jest równy `nil`.
+
+### Zadanie 15: Kompozycja z wielu struktur
+
+Stwórz dwie małe struktury: `Logger` (metoda `Log(msg string)`) oraz `Database` (metoda `Connect()`). Stwórz strukturę `Server`, która osadza **obie** te struktury. Wywołaj `server.Log()` oraz `server.Connect()`.
+
+---
+
+## Część 4: Praktyczne wzorce, JSON i Tagi (Zadania 16–20)
+
+### Zadanie 16: Tagi struktur (`Struct Tags`)
+
+Zdefiniuj strukturę `Product` z polami `ID int`, `Name string`, `Price float64`. Dodaj tagi JSON, np. `json:"product_id"`. Użyj `json.Marshal(p)` z pakietu `encoding/json`, aby zmienić strukturę na bajty JSON i wyświetl wynik w konsoli (`string(bytes)`).
+
+### Zadanie 17: Ukrywanie pól w JSON (`json:"-"` i `omitempty`)
+
+Dodaj do struktury `Product` pola:
+
+* `InternalCode string` – ma być ignorowane przez JSON (`json:"-"`).
+* `Discount float64` – ma być pomijane w JSON-ie, jeśli jest równe 0 (`json:"discount,omitempty"`).
+Sprawdź działanie `json.Marshal`.
+
+### Zadanie 18: Unmarshaling (JSON -> Struct)
+
+Stwórz zmienną ze stringiem reprezentującym JSON: `jsonData := []byte('{"name":"Laptop", "price": 2500}')`. Użyj `json.Unmarshal(jsonData, &p)` do wczytania danych do struktury `Product`. Uważaj: dlaczego musisz przekazać `&p` (wskaźnik), a nie samo `p`?
+
+### Zadanie 19: Koszyk sklepowy z metodą wyliczającą sumę
+
+Zrób rozgrzewkę przed projektem: Stwórz `CartItem` (`Product Product`, `Quantity int`). Stwórz `Cart` z polem `Items []CartItem`. Dodaj metody: `AddItem(p Product, qty int)` oraz `Total() float64`.
+
+### Zadanie 20: Enkapsulacja i prywatne pola
+
+Stwórz pod-pakiet w folderze `bank/`. Zdefiniuj w nim strukturę `Account` z **prywatnym** polem `balance float64`. Udostępnij publiczne metody `Deposit(amount float64)`, `Withdraw(amount float64) error` oraz `Balance() float64`. Sprawdź w `main.go`, że nie możesz zmodyfikować pola `balance` bezpośrednio.
 
 ---

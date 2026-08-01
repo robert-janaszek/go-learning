@@ -1,112 +1,117 @@
-Here are **20 exercises for Day 3: Interfaces, Duck Typing, and Polymorphism**.
+Here are **20 exercises for Day 3: Structs, Methods, and No Classes**.
 
-Your goal today: understand why interfaces in Go are defined on the *consumer* side, how implicit interfaces work, and how to write clean, loosely coupled code without classes and inheritance.
-
----
-
-## Part 1: Interface Basics and Implicit Implementation (Exercises 1–5)
-
-### Exercise 1: Your first interface
-
-Define a `Stringer` interface with one method: `String() string`. Create a `User` struct (`Name string`, `Age int`) and implement a `String() string` method for it. Notice that **you don't use any `implements` keyword**.
-
-### Exercise 2: Polymorphism in a function
-
-Write a function `PrintInfo(s Stringer)` that accepts anything satisfying the `Stringer` interface and calls `String()` on it. Call it in `main()` with a `User` instance.
-
-### Exercise 3: Multiple structs satisfying the same interface
-
-Create a second `Book` struct (`Title string`, `Author string`) and also implement a `String() string` method for it. Pass a `Book` instance to the same `PrintInfo` function.
-
-### Exercise 4: Interface zero value (`nil interface`)
-
-Declare an interface-typed variable: `var s Stringer` without assigning any struct to it. Check with `if s == nil` whether it is empty. See what happens if you try to call `s.String()` on an empty interface.
-
-### Exercise 5: Slice / list of interfaces
-
-Create a slice of interface-typed elements: `items := []Stringer{user, book}`. Iterate over it with `for _, item := range items` and call `item.String()` for each.
+Your goal today: master composition over inheritance and learn to write methods attached to structs with the right receiver (*value* vs *pointer receiver*).
 
 ---
 
-## Part 2: Pointer Receiver vs Value Receiver in Interfaces (Exercises 6–10)
+## Part 1: Defining and Initializing Structs (Exercises 1–5)
 
-### Exercise 6: Interface with a Pointer Receiver – The assignment trap
+### Exercise 1: Basic struct
 
-Create a `Saver` interface with a `Save() error` method. Create a `Document` struct and implement `Save()` using a **pointer receiver** `(d *Document)`.
+Define a `Book` struct with fields: `Title` (string), `Author` (string), `Pages` (int), `IsRead` (bool). Create an instance of this struct in `main()` using field names (*struct literal*) and print it.
 
-### Exercise 7: Trying to assign a value (Check the compiler error!)
+### Exercise 2: Different ways to initialize
 
-Try assigning a plain value to the interface: `var s Saver = Document{}`. See the compiler error! Why must you pass a pointer `var s Saver = &Document{}`? *(This is a key nuance in Go!)*.
+Create 3 instances of the `Book` struct:
 
-### Exercise 8: Interface with a Value Receiver
+1. Using field names (`Book{Title: "...", ...}`).
+2. Without field names (watch the order!).
+3. An empty instance (`b := Book{}`) and fill the fields on separate lines (`b.Title = "..."`).
 
-Create a second `Note` struct and implement `Save()` with a **value receiver** `(n Note)`. Check whether you can assign both `Note{}` (value) and `&Note{}` (pointer) to `Saver`.
+### Exercise 3: Pointer to a struct and factory function (Constructor Pattern)
 
-### Exercise 9: Standard `io.Reader` and `io.Writer` interfaces
+Go has no `new` keyword in the class sense. You create functions like `NewBook`. Write a function `NewBook(title, author string, pages int) *Book` that returns a **pointer** to a newly created struct.
 
-Go has excellent built-in interfaces. Get familiar with `io.Writer` (`Write(p []byte) (n int, err error)`). Write a function `WriteHello(w io.Writer)` that writes the bytes `"Hello Go"` to anything that accepts this interface (e.g. `os.Stdout` or `bytes.Buffer`).
+### Exercise 4: Anonymous struct (Ad-hoc Struct)
 
-### Exercise 10: Writing to a file and the console with the same code
+Often in Go (e.g. in tests or when extracting JSON) you create one-off structs. Create an anonymous struct with fields `ConfigName` and `Port`, initialize it immediately with values, and print it.
 
-Use the `WriteHello` function from Exercise 9 twice: once passing `os.Stdout` (console output), and once passing a file created by `os.Create("test.txt")`. Notice the power of polymorphism without building complex class hierarchies!
+### Exercise 5: Comparing structs
 
----
-
-## Part 3: Type Assertion, Type Switch, and Empty Interface (Exercises 11–15)
-
-### Exercise 11: Empty interface (`any` / `interface{}`)
-
-Go 1.18 introduced the `any` alias (equivalent to `interface{}`). It corresponds to TypeScript's `unknown` type. Create a function `Describe(i any)` that accepts any type and prints it.
-
-### Exercise 12: Type Assertion
-
-Given a variable `var val any = "hello Go"`, extract the original `string` type with an assertion: `s := val.(string)`. Print the length of that string (`len(s)`).
-
-### Exercise 13: Safe Type Assertion (`val, ok` pattern)
-
-What happens if you do `num := val.(int)` on a variable holding a string? (The app will panic!). Write a safe version using `n, ok := val.(int)` and handle the case when `ok == false`.
-
-### Exercise 14: Type Switch (Equivalent of `match` / `switch typeof`)
-
-Write a function `ProcessInput(v any)` that uses `switch v.(type)` to check the type of the passed parameter (`int`, `string`, `bool`, `Player`). For each type, print an appropriate message.
-
-### Exercise 15: Extracting a value from a struct behind an interface
-
-Create a `Payer` interface. Create a `CreditCard` struct with a unique `CardNumber string` field. Assign `CreditCard` to a `Payer`-typed variable. Use a type assertion to extract `CardNumber`.
+Create two `Book` instances with identical values. Check with `if b1 == b2` whether Go can compare them. Then add a slice field `Tags []string` to the struct and see why the code no longer compiles (structs with reference types are not comparable with `==`).
 
 ---
 
-## Part 4: Interface Composition and Best Practices (Exercises 16–20)
+## Part 2: Methods – Pointer vs Value Receiver (Exercises 6–10)
 
-### Exercise 16: Combining interfaces (Interface Embedding)
+### Exercise 6: First method with a Value Receiver
 
-Define two small interfaces:
+Add a `Summary() string` method to the `Book` struct. The method should return a string in the format `"Title" by Author (X pages)`. Use a *value receiver* `(b Book)`.
 
-1. `Reader` with a `Read() string` method
-2. `Writer` with a `Write(data string)` method
-Create a third `ReadWriter` interface that **embeds both of these interfaces**.
+### Exercise 7: Method with a Pointer Receiver (State modification)
 
-### Exercise 17: Go's golden rule: "Small interfaces"
+Add a `MarkAsRead()` method to `Book`. Think: should the method receiver be a pointer `(b *Book)` or a value `(b Book)`? Test in `main()` by calling this method on a book that had `IsRead = false`.
 
-In TypeScript people often create huge interfaces with a dozen methods. In Go the ideal interface has **1 or 2 methods**. Create a `FileHandler` struct that satisfies the `ReadWriter` interface from Exercise 16.
+### Exercise 8: Calling a pointer-receiver method on a value
 
-### Exercise 18: Consumer-defined Interface
+Create a variable `b := Book{Title: "Go in Action"}` (a plain value, not a pointer). Call the `MarkAsRead()` method from Exercise 7 on it. Notice that Go **automatically takes the address** (`(&b).MarkAsRead()`) — you don't need to turn the variable into a pointer yourself.
 
-This is the most important concept in Go. Create a `store/` sub-package with a `PostgresStore` struct that has a `GetUsers() []string` method. In the `main` package, define a `UserGetter` interface and use it in a `UserService`. *(Notice: `PostgresStore` knows nothing about the interface in `main`!)*.
+### Exercise 9: Methods on custom (basic) types
 
-### Exercise 19: Easy mocking in tests (preview)
+In Go you can attach methods not only to structs! Define a custom type: `type Celsius float64`. Add a `ToFahrenheit() float64` method to it. Test in `main()`.
 
-Thanks to the approach from Exercise 18, create a `MockStore` struct in `main` that implements `GetUsers() []string` with fake data. Swap `PostgresStore` for `MockStore` in `UserService`.
+### Exercise 10: Method that mutates a custom type
 
-### Exercise 20: Built-in interfaces from the standard library (`error`)
+Add an `Add(degrees float64)` method to the `Celsius` type. Choose the appropriate receiver so the method actually modifies the temperature value it was called on.
 
-Did you know that Go's built-in `error` type is just an interface with one method?
+---
+
+## Part 3: Composition and Embedding Instead of Inheritance (Exercises 11–15)
+
+### Exercise 11: Plain nested structs
+
+Create an `Address` struct (`City string`, `ZipCode string`). Create a `User` struct with fields `Name string` and `Addr Address`. Initialize a `User` and print the user's city (`u.Addr.City`).
+
+### Exercise 12: Anonymous Struct Embedding (Promoted fields)
+
+Modify `User` so that the `Address` field is **anonymous** (an embedded struct):
 
 ```go
-type error interface {
-    Error() string
+type User struct {
+    Name string
+    Address // No field name, just the type!
 }
 
 ```
 
-Create your own `CustomError` struct (`Code int`, `Message string`), implement an `Error() string` method for it, and return it as a plain `error` from a function.
+Check in `main()` how *field promotion* works — access the city by simply writing `u.City`.
+
+### Exercise 13: Overriding fields and methods (Shadowing in composition)
+
+Add a `FullAddress() string` method to `Address`. Then add your own `FullAddress() string` method to `User` that returns the name and address. Call both in `main()` and see how Go resolves name conflicts.
+
+### Exercise 14: Embedding a pointer to a struct
+
+Create an `Engine` struct (`HorsePower int`). Create a `Car` struct with an embedded `*Engine` pointer. Check what happens when you call a method on `Car` if `Engine` is `nil`.
+
+### Exercise 15: Composition from multiple structs
+
+Create two small structs: `Logger` (method `Log(msg string)`) and `Database` (method `Connect()`). Create a `Server` struct that embeds **both** of these structs. Call `server.Log()` and `server.Connect()`.
+
+---
+
+## Part 4: Practical Patterns, JSON, and Tags (Exercises 16–20)
+
+### Exercise 16: Struct Tags
+
+Define a `Product` struct with fields `ID int`, `Name string`, `Price float64`. Add JSON tags, e.g. `json:"product_id"`. Use `json.Marshal(p)` from the `encoding/json` package to turn the struct into JSON bytes and print the result to the console (`string(bytes)`).
+
+### Exercise 17: Hiding fields in JSON (`json:"-"` and `omitempty`)
+
+Add fields to the `Product` struct:
+
+* `InternalCode string` — should be ignored by JSON (`json:"-"`).
+* `Discount float64` — should be omitted from JSON when equal to 0 (`json:"discount,omitempty"`).
+Check how `json.Marshal` behaves.
+
+### Exercise 18: Unmarshaling (JSON -> Struct)
+
+Create a variable with a JSON string: `jsonData := []byte('{"name":"Laptop", "price": 2500}')`. Use `json.Unmarshal(jsonData, &p)` to load the data into a `Product` struct. Careful: why must you pass `&p` (a pointer), and not just `p`?
+
+### Exercise 19: Shopping cart with a total method
+
+Warm-up before the project: Create `CartItem` (`Product Product`, `Quantity int`). Create `Cart` with an `Items []CartItem` field. Add methods: `AddItem(p Product, qty int)` and `Total() float64`.
+
+### Exercise 20: Encapsulation and private fields
+
+Create a sub-package in a `bank/` folder. Define an `Account` struct in it with a **private** field `balance float64`. Expose public methods `Deposit(amount float64)`, `Withdraw(amount float64) error`, and `Balance() float64`. Verify in `main.go` that you cannot modify the `balance` field directly.

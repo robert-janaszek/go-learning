@@ -1,87 +1,88 @@
 package course
 
 import (
-	"errors"
 	"fmt"
-	"log"
-	"os"
+
+	"github.com/robert-janaszek/go-learning/course/store"
 )
 
-func MustParseURL(rawURL string) {
-	if rawURL == "" {
-		panic("invalid URL")
-	}
+// ex 16
+type reader interface {
+	Read() string
 }
 
-func SafeExecute(fn func()) {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("recovered: %s\n", r)
-		}
-	}()
-	fn()
+type writer interface {
+	Write(data string)
 }
 
-func SafeExecuteIntoErr(fn func()) (err error) {
-	// var err error = nil
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("recovered: %v", r)
-		}
-	}()
-	fn()
-
-	return err
+type readWriter interface {
+	reader
+	writer
 }
 
-func openFile() error {
-	file, err := os.Open("./course/day4d.go")
-	if err != nil {
-		fmt.Println("not opened")
-		return err
-	}
-	fmt.Println("opened")
-	defer file.Close()
-
-	if true {
-		return errors.New("unexpected error")
-	}
-
-	return nil
+// ex 17
+type fileHandler struct {
+	content string
 }
 
-func ExecuteWithLogging(fn func() error) error {
-	err := fn()
-	if err != nil {
-		log.Println(err)
-	}
+func (f *fileHandler) Read() string {
+	return f.content
+}
 
-	return err
+func (f *fileHandler) Write(data string) {
+	f.content = data
+}
+
+type userGetter interface {
+	GetUsers() []string
+}
+
+type userService struct {
+	// store userGetter
+	userGetter
+}
+
+type mockStore struct{}
+
+func (m mockStore) GetUsers() []string {
+	return []string{"a", "b"}
+}
+
+type customError struct {
+	Code    int
+	Message string
+}
+
+func (e customError) Error() string {
+	return fmt.Sprintf("%d: %s", e.Code, e.Message)
+}
+
+func throws() error {
+	return customError{
+		Code:    123,
+		Message: "custom message",
+	}
 }
 
 func Day4d() {
-	// ex 16
-	MustParseURL("test.com")
-	// MustParseURL("")
-
-	// ex 17
-	SafeExecute(func() { MustParseURL("") })
+	var file readWriter = &fileHandler{}
+	file.Write("test")
+	fmt.Println(file.Read())
 
 	// ex 18
-	err := SafeExecuteIntoErr(func() { MustParseURL("") })
-	if err != nil {
-		fmt.Println(err)
+	svc := userService{
+		store.PostgresStore{},
 	}
+	fmt.Println(svc.GetUsers())
 
 	// ex 19
-	openFile()
+	svc2 := userService{
+		mockStore{},
+	}
+
+	fmt.Println(svc2.GetUsers())
 
 	// ex 20
-	err = ExecuteWithLogging(func() error {
-		return SafeExecuteIntoErr(func() { MustParseURL("") })
-	})
-
-	if err != nil {
-		// log
-	}
+	err := throws()
+	fmt.Println(err)
 }

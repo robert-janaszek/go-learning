@@ -1,72 +1,75 @@
 package course
 
-import (
-	"errors"
-	"fmt"
-	"os"
-)
+import "fmt"
 
-func ReadConfig(path string) error {
-	_, err := os.ReadFile(path)
+func describe(i any) {
+	fmt.Println(i)
+}
 
-	if err != nil {
-		return fmt.Errorf("failed to read config file %s: %w", path, err)
+func processInput(v any) {
+	switch t := v.(type) {
+	case int:
+		fmt.Println("int: ", t)
+	case string:
+		fmt.Println("string: ", t)
+	case bool:
+		fmt.Println("bool: ", t)
+	case player:
+		fmt.Println("player: ", t)
+	default:
+		fmt.Println("unknown type")
 	}
+}
 
+type payer interface {
+	Pay(amount float64) error
+}
+type creditCard struct {
+	CardNumber string
+}
+
+func (c *creditCard) Pay(amount float64) error {
 	return nil
-}
-
-func validateForm() error {
-	err1 := fmt.Errorf("field ID does not exist")
-	err2 := fmt.Errorf("field Name does not exist")
-	err3 := fmt.Errorf("field Path does not exist")
-
-	errs := []error{err1, err2, err3}
-
-	return errors.Join(errs...)
-}
-
-func Repository() error {
-	return ErrNotFound
-}
-
-func Service() error {
-	err := Repository()
-	return fmt.Errorf("user service: %w", err)
-}
-
-func Handler() int {
-	err := Service()
-
-	if errors.Is(err, ErrNotFound) {
-		return 404
-	}
-
-	return 200
 }
 
 func Day4c() {
 	// ex 11
-	err := ReadConfig("non-existing")
-	if err != nil {
-		fmt.Println(err)
+	d := document{
+		Name: "test.txt",
 	}
+	describe(d)
+	describe("test")
+	describe(42)
 
 	// ex 12
-	if errors.Is(err, os.ErrNotExist) {
-		fmt.Println(err)
-	}
+	var val any = "hello Go"
+	s := val.(string)
+	fmt.Println(len(s))
+	fmt.Println(s)
 
 	// ex 13
-	var pathErr *os.PathError
-	ok := errors.As(err, &pathErr)
-	if ok {
-		fmt.Println(pathErr.Path)
+	n, ok := val.(int)
+	if !ok {
+		fmt.Println("incorrect casting")
 	}
+	fmt.Println(n)
 
 	// ex 14
-	fmt.Println(validateForm())
+	processInput(2)
+	processInput("test")
+	processInput(false)
+	processInput(player{})
 
 	// ex 15
-	fmt.Println(Handler())
+	var p payer = &creditCard{
+		CardNumber: "123 321",
+	}
+	c, ok := p.(*creditCard)
+
+	if !ok {
+		fmt.Println("cannot convert to credit card")
+		return
+	}
+	fmt.Println("Credit card number: ", c.CardNumber)
+
 }

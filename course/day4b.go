@@ -1,75 +1,76 @@
 package course
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
+	"io"
+	"os"
 )
 
-type ValidationError struct {
-	Field   string
-	Message string
+type saver interface {
+	Save() error
 }
 
-func (v ValidationError) Error() string {
-	return fmt.Sprintf("[%s]: %s", v.Field, v.Message)
+type document struct {
+	Name string
 }
 
-func validate() error {
-	return ValidationError{
-		Field:   "id",
-		Message: "id cannot be 0",
-	}
-}
-
-func RegisterUser(email, password string) error {
-	if !strings.Contains(email, "@") {
-		return &ValidationError{Field: "email", Message: "missing @"}
-	}
-
+func (d *document) Save() error {
+	fmt.Println("Saving document " + d.Name)
 	return nil
 }
 
-func badValidate() error {
-	var customErr *ValidationError = nil
-
-	return customErr
+type note struct {
+	note string
 }
-func badValidate1() error {
-	// var customErr *ValidationError = nil
 
+func (n note) Save() error {
 	return nil
+}
+
+// pointer receiver implements method only in pointer mode, contrary to value receiver
+var _ saver = &document{}
+
+// ex 7
+// var _ saver = document{} -- cannot use document{} (value of struct type document) as saver value in variable declaration: document does not implement saver (method Save has pointer receiver)
+
+func writeHello(w io.Writer) {
+	msg := []byte("Hello Go")
+	_, err := w.Write(msg)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func Day4b() {
 	// ex 6
-	fmt.Println(validate())
-
-	// ex 7
-	err1 := RegisterUser("test", "test")
-	if err1 != nil {
-		fmt.Println(err1)
+	doc := document{
+		Name: "CV.pdf",
 	}
-	err2 := RegisterUser("test@test.com", "test")
-	if err2 != nil {
-		fmt.Println(err2)
+
+	err := doc.Save()
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	// ex 8
-	ve, ok := err1.(*ValidationError)
-	if ok {
-		fmt.Println(ve.Field)
-		fmt.Println(ve.Message)
-	}
+	var _ saver = note{}
+	var _ saver = &note{}
 
 	// ex 9
-	err3 := badValidate()
-	if err3 != nil {
-		fmt.Println(err3) // <nil>
-	}
+	writeHello(os.Stdout)
+	buffer := bytes.Buffer{}
+	writeHello(&buffer)
+
+	fmt.Println(buffer.String())
 
 	// ex 10
-	err4 := badValidate1()
-	if err4 != nil {
-		fmt.Println(err4)
+	// os.Stdout - done above
+	file, err := os.Create("test.txt")
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+	defer file.Close()
+	writeHello(file)
 }

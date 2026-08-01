@@ -1,135 +1,125 @@
-Oto **20 zadań na Dzień 6: Współbieżność (Concurrency) – Goroutines, Kanały i Selektory**.
+Oto **20 zadań na Dzień 6: Pakiety, Struktura Projektu i Standardowa Biblioteka**.
 
-Dzisiaj wchodzimy w jeden z najważniejszych i najbardziej charakterystycznych elementów Go. Zamiast jednowątkowej pętli zdarzeń z Node.js (`Event Loop`) i obietnic (`Promises`), poznasz model **CSP (Communicating Sequential Processes)**.
-
-Święta zasada Go brzmi: *"Nie komunikuj się poprzez dzielenie pamięci; dziel pamięć poprzez komunikację"*.
+Dzisiaj zrobisz krok od pisania skryptów w jednym pliku do tworzenia **prawdziwych, ustrukturyzowanych aplikacji w Go**. Opanujesz podział na pakiety, hermetyzację (widoczność pól) oraz kluczowe pakiety biblioteki standardowej (`net/http`, `context`, `slog`, `time`).
 
 ---
 
-## Część 1: Lekkie Wątki (`Goroutines`) i Synchronizacja (Zadania 1–5)
+## Część 1: Pakiety, Widoczność i Struktura Projektu (Zadania 1–5)
 
-### Zadanie 1: Twoja pierwsza goroutine
+### Zadanie 1: Twój pierwszy pod-pakiet
 
-Napisz funkcję `sayHello(name string)`, która wypisuje powitanie. Wywołaj ją w `main()` ze słowem kluczowym `go`: `go sayHello("Gopher")`. Zauważ, że program wyłączył się, zanim funkcja cokolwiek wydrukowała. Przeanalizuj, dlaczego tak się stało.
+Stwórz folder `config/` a w nim plik `config.go` z deklaracją `package config`. Stwórz w nim strukturę `AppConfig` z polem `Port int`. Zaimportuj ten pakiet w głównym pliku `main.go` i użyj tej struktury.
 
-### Zadanie 2: Oczekiwanie na goroutines (`sync.WaitGroup`)
+### Zadanie 2: Publiczne vs Prywatne (Wielkość liter)
 
-Użyj struktury `sync.WaitGroup`, aby naprawić Zadanie 1:
+W pakiecie `config` stwórz dwie funkcje: `Load()` (publiczna) oraz `parseEnv()` (prywatna). Zobacz, co się stanie, gdy spróbujesz wywołać `config.parseEnv()` w pliku `main.go`.
 
-1. Stwórz `var wg sync.WaitGroup`.
-2. Dodaj zadanie do licznika: `wg.Add(1)`.
-3. Przekaż wskaźnik do `wg` do goroutine i wywołaj w niej `defer wg.Done()`.
-4. Na końcu `main()` wywołaj `wg.Wait()`.
+### Zadanie 3: Enkapsulacja i Gettery/Settery
 
-### Zadanie 3: Uruchamianie wielu goroutines w pętli (Pułapka ze zmienną pętli)
+W nowym pakiecie `user/` zdefiniuj strukturę `User` z prywatnym polem `email string`. Udostępnij publiczne metody `SetEmail(e string) error` (z walidacją `@`) oraz `Email() string` (getter).
 
-Uruchom 5 goroutines w pętli `for i := 0; i < 5; i++`. Przekaż `i` jako argument do funkcji wewnątrz goroutine. Sprawdź, co się stanie, jeśli zamiast przekazać `i` jako parametr, użyjesz go bezpośrednio wewnątrz funkcji anonimowej `go func() { fmt.Println(i) }()`.
+> **Wskazówka idiomu Go:** W Go nie używa się przedrostka `Get` dla getterów. Zamiast `GetEmail()` stosuje się po prostu `Email()`.
 
-### Zadanie 4: Badanie wyścigów pamięci (`Data Race`)
+### Zadanie 4: Aliasy importów i unikanie konfliktów
 
-Napisz program, w którym 100 goroutines jednocześnie zwiększa wspólną zmienną `counter++` bez żadnej synchronizacji. Uruchom program w terminalu z flagą detekcji wyścigów:
-
-```bash
-go run -race main.go
-
-```
-
-Zaobserwuj raport ze skanera *Data Race*.
-
-### Zadanie 5: Mutex – Ochrona zasobów (`sync.Mutex`)
-
-Napraw wyścig z Zadania 4. Użyj `var mu sync.Mutex` i zabezpiecz operację modyfikacji zmiennej blokadami `mu.Lock()` oraz `mu.Unlock()`. Ponownie uruchom program z flagą `-race` i upewnij się, że wyścig zniknął.
-
----
-
-## Część 2: Kanały (`Channels`) – Podstawy (Zadania 6–10)
-
-### Zadanie 6: Niebuforowany kanał (Unbuffered Channel)
-
-Stwórz kanał przesyłający napisy: `ch := make(chan string)`. Uruchom goroutine, która wysyła do kanału wiadomość: `ch <- "ping"`. W wątku głównym odebrana treść przypisz do zmiennej: `msg := <-ch` i ją wyświetl.
-
-### Zadanie 7: Blokada przy braku odbiorcy (Deadlock)
-
-Zobacz, co się stanie, gdy spróbujesz wysłać dane do niebuforowanego kanału `ch <- "data"` w tym samym wątku (`main`), bez uruchamiania osobnej goroutine do ich odbioru. Przeanalizuj błąd *fatal error: all goroutines are asleep - deadlock!*.
-
-### Zadanie 8: Buforowany kanał (Buffered Channel)
-
-Stwórz kanał z buforem o rozmiarze 2: `ch := make(chan int, 2)`. Wyślij do niego dwie wartości pod rząd w wątku głównym (`ch <- 1`, `ch <- 2`). Zauważ, że program się nie zablokował. Co się stanie przy próbie wysłania trzeciej wartości?
-
-### Zadanie 9: Zamykanie kanału (`close`) i pętla `range`
-
-Napisz goroutine (producenta), która wysyła w pętli liczby od 1 do 5 do kanału, a po zakończeniu wysyłania **zamyka kanał**: `close(ch)`. W wątku głównym (konsument) użyj pętli `for val := range ch` do odebrania wszystkich danych.
-
-### Zadanie 10: Bezpieczne sprawdzanie czy kanał jest otwarty
-
-Odbierz wartość z zamkniętego kanału używając składni dwuargumentowej: `val, ok := <-ch`. Sprawdź, jaką wartość ma `val` oraz `ok` dla otwartego i zamkniętego kanału.
-
----
-
-## Część 3: Selektory (`select`) i Zaawansowane Wzorce (Zadania 11–15)
-
-### Zadanie 11: Instrukcja `select`
-
-Stwórz dwa kanały `ch1` i `ch2`. Uruchom dwie goroutines wysyłające dane do tych kanałów z różnymi opóźnieniami (`time.Sleep`). Użyj bloku `select`, aby odebrać wiadomość z tego kanału, który odpowie jako **pierwszy**.
-
-### Zadanie 12: Timeout na operacji za pomocą `select`
-
-Napisz funkcję pobierającą dane z kanału, ale z zabezpieczeniem czasowym. Użyj `select` łącząc Twój kanał z kanałem zwracanym przez `time.After(2 * time.Second)`:
+Wyobraź sobie, że importujesz dwa pakiety o takiej samej nazwie końcowej (np. `math/rand` oraz `crypto/rand`). Użyj aliasu importu w `main.go`, aby używać obu jednocześnie:
 
 ```go
-select {
-case res := <-dataChan:
-    fmt.Println("Received:", res)
-case <-time.After(2 * time.Second):
-    fmt.Println("Timeout!")
-}
+import (
+    crand "crypto/rand"
+    mrand "math/rand"
+)
 
 ```
 
-### Zadanie 13: Kanały jednokierunkowe (Directional Channels)
+### Zadanie 5: Anonimowe importy (Side-effects `_`)
 
-Dla zwiększenia bezpieczeństwa typów, w funkcjach można ograniczyć prawa do kanału:
-
-* `func produce(ch chan<- int)` – kanał tylko do zapisu (send-only).
-* `func consume(ch <-chan int)` – kanał tylko do odczytu (receive-only).
-Napisz dwie funkcje z takimi sygnaturami i połącz je kanałem w `main()`.
-
-### Zadanie 14: Anulowanie z użyciem `ctx.Done()` i `select`
-
-Napisz worker pracujący w nieskończonej pętli `for`, który wewnątrz używa `select` do sprawdzania dwóch kanałów: kanału z zadaniami oraz kanału `ctx.Done()` z kontekstu. Po anulowaniu kontekstu worker powinien zakończyć działanie.
-
-### Zadanie 15: Non-blocking Channel Operations (`default` w `select`)
-
-Użyj klauzuli `default` w bloku `select`, aby podjąć próbę odczytu z kanału bez blokowania wątku, jeśli kanał jest akurat pusty.
+Zobacz, jak działa import tylko dla efektów ubocznych (np. rejestracja sterownika bazy danych): `import _ "[github.com/lib/pq](https://github.com/lib/pq)"`. Dowiedz się, do czego służy specjalna funkcja `init()` w pakietach.
 
 ---
 
-## Część 4: Wzorce Współbieżności w Praktyce (Zadania 16–20)
+## Część 2: Kontekst (`context.Context`) – Kluczowy Koncept w Go (Zadania 6–10)
 
-### Zadanie 16: Worker Pool (Pula Pracowników)
+### Zadanie 6: Tworzenie bazowego kontekstu
 
-To najpopularniejszy wzorzec produkcyjny w Go!
+W Go `context.Context` służy do przekazywania sygnałów anulowania, deadline'ów oraz metadanych żądania. Stwórz bazowy kontekst za pomocą `ctx := context.Background()`.
 
-1. Stwórz kanał `jobs := make(chan int, 100)`.
-2. Stwórz kanał `results := make(chan int, 100)`.
-3. Uruchom 3 workerów (goroutines), z których każdy w pętli pobiera zadania z `jobs`, wykonuje obliczenie (np. `job * 2`) i wysyła wynik do `results`.
-4. Wyślij 10 zadań i zamknij `jobs`. Odbierz 10 wyników.
+### Zadanie 7: Przekazywanie wartości w kontekście (`context.WithValue`)
 
-### Zadanie 17: Fan-Out, Fan-In
+Stwórz funkcję `processRequest(ctx context.Context)`. Do kontekstu dodaj id żądania: `ctx = context.WithValue(ctx, "request_id", "abc-123")`. Wewnątrz funkcji wyciągnij tę wartość i sprawdź jej typ za pomocą asercji typu.
 
-* **Fan-Out:** Rozdziel jedno źródło zadań na wiele równolegle pracujących goroutines.
-* **Fan-In:** Połącz wyniki z wielu osobnych kanałów w jeden wspólny kanał wyjściowy za pomocą funkcji łączącej (`merge`).
+### Zadanie 8: Anulowanie operacji (`context.WithCancel`)
 
-### Zadanie 18: Wyścig zapytania HTTP (First Responder / Hedged Requests)
+Stwórz kontekst z funkcją anulującą: `ctx, cancel := context.WithCancel(context.Background())`. Uruchom symulowaną długa operację w pętli `select` nasłuchującej na `<-ctx.Done()`. Wywołaj `cancel()` i zaobserwuj, jak operacja natychmiast przerwie działanie.
 
-Napisz funkcję, która wysyła to samo zapytanie (np. pobranie danych z bazy) do 3 różnych serwerów/mirrorów jednocześnie w osobnych goroutines. Użyj buforowanego kanału, aby pobrać **pierwszą odpowiedź**, która nadejdzie, i zignoruj pozostałe.
+### Zadanie 9: Timeouty (`context.WithTimeout`)
 
-### Zadanie 19: Ograniczanie przepustowości (Rate Limiting)
+Stwórz kontekst, który automatycznie anuluje się po 100 milisekundach: `ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)` (zawsze pamiętaj o `defer cancel()!`). Symuluj operację trwającą 500 ms i obsłuż przerywanie z powodu przekroczenia czasu.
 
-Użyj `time.Tick(200 * time.Millisecond)`, aby stworzyć ogranicznik, który pozwala na przetworzenie maksymalnie 5 żądań na sekundę.
+### Zadanie 10: Przekazywanie kontekstu jako PIERWSZY argument
 
-### Zadanie 20: Pustokątna struktura w kanałach sygnałowych (`chan struct{}`)
+Zgodnie z konwencją Go, jeśli funkcja przyjmuje kontekst, **musi być on pierwszym argumentem**: `func FetchData(ctx context.Context, id string) error`. Przenosząc ten nawyk z TS (gdzie czasy wykonania czy opcje wrzuca się na koniec), dostosuj swoje funkcje do standardu Go.
 
-Często kanał służy jedynie do wysłania sygnału ("coś się stało"), a nie przesyłania danych. W Go używa się do tego typu `chan struct{}`, ponieważ `struct{}` zajmuje **0 bajtów** w pamięci! Stwórz kanał `done := make(chan struct{})` i użyj go do powiadomienia `main()` o zakończeniu tła.
+---
+
+## Część 3: Tworzenie HTTP Serwera (`net/http`) (Zadania 11–15)
+
+### Zadanie 11: Najprostszy serwer HTTP
+
+Stwórz serwer HTTP bez używania zewnętrznych frameworków (jak Express w Node.js). Użyj `http.HandleFunc` z nowym routingiem wprowadzanym od Go 1.22:
+
+```go
+http.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte("OK"))
+})
+http.ListenAndServe(":8080", nil)
+
+```
+
+### Zadanie 12: Serwowanie danych JSON
+
+Napisz handler `GET /api/user`, który tworzy strukturę `User`, ustawia nagłówek `w.Header().Set("Content-Type", "application/json")` i serializuje dane bezpośrednio do strumienia odpowiedzi za pomocą `json.NewEncoder(w).Encode(user)`.
+
+### Zadanie 13: Odczytywanie JSON z Body (`POST`)
+
+Napisz handler `POST /api/user`, który dekoduje body żądania do struktury za pomocą `json.NewDecoder(r.Body).Decode(&user)`. Zadbaj o obsługę błędów przy niepoprawnym JSON-ie.
+
+### Zadanie 14: Parametry ze ścieżki (Path Values w Go 1.22+)
+
+Napisz handler `GET /users/{id}`, który pobiera zmienną z adresu URL używając wbudowanej metody `id := r.PathValue("id")`.
+
+### Zadanie 15: Prosty Middleware HTTP
+
+Middleware w Go to funkcja przyjmująca `http.Handler` i zwracająca `http.Handler`. Napisz middleware `LoggingMiddleware`, który mierzy czas wykonania każdego żądania HTTP (użyj `time.Now()` i `time.Since()`) i wypisuje metodę oraz ścieżkę.
+
+---
+
+## Część 4: Nowoczesne Logowanie (`slog`) i Czas (`time`) (Zadania 16–20)
+
+### Zadanie 16: Strukturyzowane logi z pakietem `log/slog`
+
+Od wersji Go 1.21 w bibliotece standardowej znajduje się pakiet `slog`. Zamiast zwykłego `fmt.Println`, użyj `slog.Info("user logged in", "user_id", 42, "role", "admin")`.
+
+### Zadanie 17: Logowanie w formacie JSON
+
+Skonfiguruj `slog`, aby wypluwał logi w formacie JSON (idealne dla środowisk produkcyjnych i Datadog/Grafana):
+
+```go
+logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+slog.SetDefault(logger)
+
+```
+
+### Zadanie 18: Bezpieczna praca z czasem (`time.Time`)
+
+W JS operacje na datach potrafią być koszmarem. W Go masz potężny pakiet `time`. Stwórz dwie daty, odejmij je od siebie (`diff := t2.Sub(t1)`), uzyskując typ `time.Duration`, i sprawdź ile to sekund lub milisekund.
+
+### Zadanie 19: Formatowanie i parsowanie dat
+
+W Go daty formatuje się za pomocą **konkretnego punktu w czasie**: `Mon Jan 2 15:04:05 MST 2006` (zapamiętaj układ cyfr: 1 2 3 4 5 6 7). Sformatuj aktualny czas do formatu `YYYY-MM-DD` używając patternu `"2006-01-02"`.
+
+### Zadanie 20: Ticker i Timer
+
+Użyj `time.NewTicker(1 * time.Second)`, aby stworzyć pętlę wykonującą akcję co sekundę (np. wypisanie statusu w konsoli). Pamiętaj o zatrzymaniu tickera za pomocą `defer ticker.Stop()`.
 
 ---

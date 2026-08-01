@@ -24,7 +24,7 @@ Whenever generating a git commit message, follow these rules:
    - refactor: meaningful restructure of exercise code (not main.go wiring)
 
 4. SCOPE:
-   Prefer the course day or area, e.g. day5, day4, jsonparser, docs.
+   Prefer the course day or area, e.g. day7, day6, jsonparser, docs.
    For dependency-only changes use deps.
    Omit scope only when the change is truly cross-cutting and no day fits.
 
@@ -41,8 +41,8 @@ Whenever generating a git commit message, follow these rules:
 # ==============================================================================
 # EXAMPLES:
 # ==============================================================================
-# feat(day5): add packages, visibility, and blank-import exercises
-# feat(day4): complete error handling exercises
-# docs(day5): add Polish exercise brief
+# feat(day6): add packages, visibility, and blank-import exercises
+# feat(day5): complete error handling exercises
+# docs(day1): add Go tooling intro exercises
 # chore(deps): add github.com/lib/pq
 # fix(day3): correct slice bounds in exercise helper

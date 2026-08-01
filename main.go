@@ -3,16 +3,12 @@ package main
 import "github.com/robert-janaszek/go-learning/course"
 
 func main() {
-	// course.Day1a()
-	// course.Day1b()
-	// course.Day1c()
-	// course.Day2()
+	// course.Day2a()
 	// course.Day2b()
 	// course.Day2c()
 	// course.Day3a()
 	// course.Day3b()
 	// course.Day3c()
-	// course.Day3d()
 	// course.Day4a()
 	// course.Day4b()
 	// course.Day4c()
@@ -24,7 +20,11 @@ func main() {
 	// course.Day6a()
 	// course.Day6b()
 	// course.Day6c()
-	course.Day6d()
+	// course.Day6d()
+	// course.Day7a()
+	// course.Day7b()
+	// course.Day7c()
+	course.Day7d()
 
 	// result, _ := jsonfixer.Fix(`{"a`)
 	// fmt.Println(result)

@@ -1,75 +1,109 @@
 package course
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
 
-func describe(i any) {
-	fmt.Println(i)
+	"github.com/robert-janaszek/go-learning/bank"
+)
+
+type product struct {
+	ID           int     `json:"product_id"`
+	Name         string  `json:"name"`
+	Price        float64 `json:"price"`
+	InternalCode string  `json:"-"`
+	Discount     float64 `json:"discount,omitempty"`
 }
 
-func processInput(v any) {
-	switch t := v.(type) {
-	case int:
-		fmt.Println("int: ", t)
-	case string:
-		fmt.Println("string: ", t)
-	case bool:
-		fmt.Println("bool: ", t)
-	case player:
-		fmt.Println("player: ", t)
-	default:
-		fmt.Println("unknown type")
+type cartItem struct {
+	Product  product
+	Quantity int
+}
+type cart struct {
+	Items []cartItem
+}
+
+func (c *cart) AddItem(p product, qty int) {
+	item := cartItem{Product: p, Quantity: qty}
+	c.Items = append(c.Items, item)
+}
+func (c cart) Total() float64 {
+	var total float64 = 0
+
+	for _, item := range c.Items {
+		total += float64(item.Quantity) * (item.Product.Price - item.Product.Discount)
 	}
-}
 
-type payer interface {
-	Pay(amount float64) error
-}
-type creditCard struct {
-	CardNumber string
-}
-
-func (c *creditCard) Pay(amount float64) error {
-	return nil
+	return total
 }
 
 func Day3c() {
-	// ex 11
-	d := document{
-		Name: "test.txt",
-	}
-	describe(d)
-	describe("test")
-	describe(42)
+	// ex 16
+	p := product{ID: 1, Name: "hairdryer", Price: 300}
+	j, err := json.Marshal(p)
 
-	// ex 12
-	var val any = "hello Go"
-	s := val.(string)
-	fmt.Println(len(s))
-	fmt.Println(s)
-
-	// ex 13
-	n, ok := val.(int)
-	if !ok {
-		fmt.Println("incorrect casting")
-	}
-	fmt.Println(n)
-
-	// ex 14
-	processInput(2)
-	processInput("test")
-	processInput(false)
-	processInput(player{})
-
-	// ex 15
-	var p payer = &creditCard{
-		CardNumber: "123 321",
-	}
-	c, ok := p.(*creditCard)
-
-	if !ok {
-		fmt.Println("cannot convert to credit card")
+	if err != nil {
 		return
 	}
-	fmt.Println("Credit card number: ", c.CardNumber)
 
+	fmt.Println(string(j))
+
+	// ex 17
+	p1 := product{
+		ID:           2,
+		Name:         "hairdryer 2",
+		Price:        400,
+		InternalCode: "secret",
+		Discount:     50,
+	}
+	j1, err := json.Marshal(p1)
+
+	if err != nil {
+		return
+	}
+
+	fmt.Println(string(j1))
+
+	// ex 18
+	jsonData := []byte(`{"name":"Laptop", "price": 2500}`)
+	var p2 product
+	err = json.Unmarshal(jsonData, &p2)
+
+	if err != nil {
+		return
+	}
+
+	fmt.Printf("%+v\n", p2)
+
+	// ex 19
+	c := cart{}
+	c.AddItem(p1, 1)
+	c.AddItem(p2, 3)
+
+	fmt.Println(c.Total())
+
+	// ex 20
+
+	account := bank.Account{}
+	err = account.Deposit(150)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(account.Balance())
+
+	err = account.Withdraw(100)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = account.Withdraw(100)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(account.Balance())
+
+	// account.balance = 100 -- not allowed
 }

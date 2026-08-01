@@ -1,107 +1,114 @@
-Oto **20 krótkich, wysoce praktycznych zadań**, które przeprowadzą Cię od podstaw zmiennych i typów, przez manipulację pamięcią, aż po niuanse przekazywania danych do funkcji.
+Oto **zadania na Dzień 1: Narzędzia Go (CLI)**.
 
-Podzieliłem je na sekcje, abyś stopniowo budował intuicję wokół wskaźników.
+Zanim wejdziesz w składnię i współbieżność, oswoisz się z podstawowym toolingiem. W Go większość pracy zaczyna się od kilku komend w terminalu — odpowiedników tego, co w JS/TS znasz jako `node`, bundler czy Prettier.
 
----
-
-## Część 1: Zmienne, Typy i Deklaracje (Zadania 1–5)
-
-### Zadanie 1: Różne sposoby deklaracji
-
-Zadeklaruj zmienną `age` typu `int` na 3 sposoby: z użyciem `var` z podaniem typu, z użyciem `var` z inferencją typu oraz z użyciem krótkiej deklaracji `:=`. Wydrukuj ich typy za pomocą `fmt.Printf("%T\n", age)`.
-
-### Zadanie 2: Konwersja typów (Brak implicit casting)
-
-W JS możesz dodać `5 + "5"`. W Go nie ma automatycznej rzutowania typów. Stwórz zmienną `a int = 42` oraz `b float64 = 3.14`. Przekonwertuj `a` na `float64`, dodaj do `b` i wynik przypisz do nowej zmiennej.
-
-### Zadanie 3: Zero Values (Wartości Domyślne)
-
-W JS niezainicjalizowana zmienna to `undefined`. Zadeklaruj za pomocą `var` bez przypisywania wartości: `int`, `float64`, `string`, `bool` oraz wskaźnik `*int`. Wydrukuj je i sprawdź, jakie mają wartości domyślne (*zero values*).
-
-### Zadanie 4: Stałe (`const`) i `iota`
-
-Stwórz blok stałych reprezentujących dni tygodnia (od `Monday` do `Sunday`) z użyciem generatora `iota`. Wyświetl ich wartości liczbowe w konsoli.
-
-### Zadanie 5: Shadowing (Przysłanianie zmiennych)
-
-Stwórz zmienną `x := 10` w zewnętrznym bloku. Otwórz nowy blok kodu `{ ... }`, zadeklaruj w nim `x := 20` i wyświetl `x`. Poza blokiem wyświetl ponownie `x`. Przeanalizuj, co się stało.
+Cel dnia: uruchomić projekt, zbudować binarkę, sformatować kod i odpalić prosty linter.
 
 ---
 
-## Część 2: Podstawy Wskaźników – Adresy i Dereferencja (Zadania 6–10)
+## Część 1: Uruchamianie i budowanie (Zadania 1–4)
 
-### Zadanie 6: Pobieranie adresu (`&`)
+### Zadanie 1: Uruchomienie w pamięci
 
-Stwórz zmienną `score := 100`. Stwórz zmienną `ptr`, która przechowuje adres zmiennej `score`. Wydrukuj wartość `score`, adres `score` oraz typ zmiennej `ptr`.
+W katalogu projektu (tam, gdzie jest `go.mod` i `main.go`) uruchom:
 
-### Zadanie 7: Dereferencja (`*`)
+```bash
+go run .
+```
 
-Mając wskaźnik `ptr` z Zadania 6, zmień wartość `score` na `200` **używając tylko wskaźnika `ptr**` (operator dereferencji `*ptr = ...`). Wydrukuj `score`.
+albo:
 
-### Zadanie 8: Dwa wskaźniki do jednej zmiennej
+```bash
+go run main.go
+```
 
-Stwórz `x := 50`. Stwórz dwa wskaźniki `p1` oraz `p2`, oba wskazujące na `x`. Zmień wartość przez `p1` na `100`, a następnie wydrukuj wartość pobraną przez `*p2`.
+Zobacz, co wypisuje program. To kompilacja „w locie” + od razu start — bez trwałego pliku binarnego (wygodne przy nauce).
 
-### Zadanie 9: Wskaźnik typu Nil (`nil pointer`)
+### Zadanie 2: Kompilacja do pojedynczej binarki
 
-Zadeklaruj wskaźnik `var p *int` (bez przypisywania adresu). Sprawdź warunkiem `if p == nil`, czy wskaźnik jest pusty. Zobacz, co się stanie (i jaki błąd zgłosi runtime), jeśli spróbujesz zrobić `*p = 10` bez inicjalizacji (tzw. *nil pointer dereference panic*).
+Zbuduj program:
 
-### Zadanie 10: Podwójny wskaźnik (`**int`)
+```bash
+go build
+```
 
-Stwórz zmienną `val := 42`. Stwórz wskaźnik `p` wskazujący na `val`. Stwórz wskaźnik do wskaźnika `pp` (typ `**int`) wskazujący na `p`. Odczytaj wartość `42` używając tylko `pp`.
+albo z nazwą wyjścia:
+
+```bash
+go build -o go-learning
+```
+
+Uruchom powstały plik (np. `./go-learning`). Porównaj z `go run`: `build` zostawia artefakt na dysku.
+
+### Zadanie 3: Formatowanie (`go fmt`)
+
+Zmień celowo wcięcia lub spacje w jakimś pliku `.go`, potem:
+
+```bash
+go fmt ./...
+```
+
+To odpowiednik Prettiera / formatera w ekosystemie Go — jeden oficjalny styl dla całego ekosystemu.
+
+### Zadanie 4: Podstawowy linter (`go vet`)
+
+Uruchom:
+
+```bash
+go vet ./...
+```
+
+`vet` szuka typowych pomyłek (np. podejrzane `Printf`, nieskuteczne `Lock`). Nie zastępuje pełnego lintera (jak `staticcheck`), ale to dobry pierwszy krok w CI.
+
+---
+
+## Część 2: Moduł i testy (Zadania 5–8)
+
+### Zadanie 5: Podejrzyj `go.mod`
+
+Otwórz `go.mod`. Zanotuj nazwę modułu i wersję języka (`go 1.xx`). To „manifest” zależności projektu.
+
+### Zadanie 6: Lista pakietów
+
+```bash
+go list ./...
+```
+
+Zobacz, które pakiety Go widzi w repozytorium (`course`, `json-parser`, …).
+
+### Zadanie 7: Testy
+
+```bash
+go test ./...
+```
+
+Nawet jeśli dziś nie piszesz testów, warto wiedzieć, jak odpalić cały zestaw.
+
+### Zadanie 8: Pomoc CLI
+
+```bash
+go help
+go help build
+go help test
+```
+
+Przejrzyj krótkie opisy — dokumentacja jest wbudowana w narzędzie.
 
 ---
 
-## Część 3: Wskaźniki w Funkcjach (Zadania 11–15)
+## Część 3: Workflow nauki (Zadania 9–10)
 
-### Zadanie 11: Swap (Zamiana wartości)
+### Zadanie 9: Scratch `main.go`
 
-Napisz funkcję `swap(a, b *int)`, która zamienia wartości dwóch zmiennych miejscami. Przetestuj ją w `main()` na dwóch zmiennych `x := 1` i `y := 2`.
+W `main.go` odkomentuj / podepnij wywołanie ćwiczenia z `course` (od Dnia 2 wzwyż). Uruchom ponownie przez `go run .`.
 
-### Zadanie 12: Modyfikacja napisu (`string`)
+### Zadanie 10: Checklista dnia
 
-Napisz funkcję `uppercase(s *string)`, która przyjmuje wskaźnik do `stringa` i zmienia jego treść na wielkie litery (użyj `strings.ToUpper`). Sprawdź wynik w `main()`.
+Upewnij się, że potrafisz bez ściągi:
 
-### Zadanie 13: Bezpieczne dzielenie z opcjonalnym wynikiem
+1. uruchomić kod (`go run`),
+2. zbudować binarkę (`go build`),
+3. sformatować (`go fmt ./...`),
+4. sprawdzić `go vet ./...`.
 
-Napisz funkcję `safeDivide(a, b float64, result *float64) bool`. Jeśli `b == 0`, funkcja zwraca `false`. Jeśli nie, zapisuje wynik pod adres `result` i zwraca `true`.
-
-### Zadanie 14: Licznik (Incementator)
-
-Stwórz strukturę/zmienną reprezentującą licznik. Napisz funkcję `increment(val *int)`, która zwiększa wartość o 1 przy każdym wywołaniu. Wywołaj ją 3 razy w pętli.
-
-### Zadanie 15: Funkcja zwracająca wskaźnik
-
-Napisz funkcję `createInt(val int) *int`, która tworzy lokalną zmienną wewnątrz funkcji i zwraca jej adres `&localVal`.
-*(Kontekst dla programisty C/C++: W Go to jest w pełni bezpieczne! Kompilator zrobi Escape Analysis i zaalokuje tę zmienną na stercie zamiast na stosie).*
-
----
-
-## Część 4: Wskaźniki i Struktury (Zadania 16–20)
-
-### Zadanie 16: Struktura Gracz i modyfikacja stanu
-
-Zdefiniuj strukturę `Player` z polami `Name string` i `Health int`. Napisz funkcję `takeDamage(p *Player, amount int)`, która zmniejsza punkty życia gracza.
-
-### Zadanie 17: Receiver wartości vs Receiver wskaźnika
-
-Do struktury `Player` z dodaj dwie metody:
-
-1. `HealValue(amount int)` z *value receiverem* `(p Player)`
-2. `HealPointer(amount int)` z *pointer receiverem* `(p *Player)`
-Wywołaj obie w `main()` i zaobserwuj, która metoda faktycznie leczy gracza.
-
-### Zadanie 18: Automatyczna dereferencja w strukturach
-
-Stwórz wskaźnik do struktury `p := &Player{Name: "Gopher", Health: 100}`. Zmień jego pole `Health` na `90` wpisując po prostu `p.Health = 90`. Zauważ, że w Go nie musisz pisać `(*p).Health = 90` – język robi to automatycznie!
-
-### Zadanie 19: Opcjonalne pola w strukturach (Koncept z JS/TS)
-
-W TypeScript masz opcjonalne pola `age?: number` (które mogą być `undefined`). W Go robi się to wskaźnikami!
-Stwórz strukturę `User` z polami `Name string` oraz `Age *int`. Stwórz jednego użytkownika bez podanego wieku (`Age = nil`) i jednego z wiekiem.
-
-### Zadanie 20: Wyciek pamięci / Pętla na strukturach
-
-Stwórz wycinek (slice) struktur `[]Player`. Prziteruj po nim pętlą `for _, player := range players`. Spróbuj zmienić `player.Health = 0` wewnątrz pętli. Sprawdź, dlaczego to **nie działa** (zmienna w pętli `range` jest tylko kopią) i jak to naprawić używając indeksów `players[i].Health = 0`.
-
----
+Od Dnia 2 wchodzisz w język: zmienne, typy i wskaźniki.

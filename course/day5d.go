@@ -1,49 +1,87 @@
 package course
 
 import (
-	"context"
-	"log/slog"
+	"errors"
+	"fmt"
+	"log"
 	"os"
-	"time"
 )
 
-func Day5d() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
-	// ex 16, 17
-	slog.Info("user logged in", "user_id", 42, "role", "admin")
+func MustParseURL(rawURL string) {
+	if rawURL == "" {
+		panic("invalid URL")
+	}
+}
 
-	// ex 18
-	t1 := time.Now()
-
-	t2 := time.Date(2012, time.February, 6, 12, 11, 40, 12, time.Local)
-
-	diff := t2.Sub(t1)
-	slog.Info("time difference", "diff", diff.Abs().Seconds())
-
-	// ex 19
-	slog.Info("Current time", "time", t1.Format("2006-01-02"))
-
-	// ex 20
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
-
-	go func() {
-		time.Sleep(3 * time.Second)
-		cancel()
-	}()
-
-	for i := 0; i < 5; i++ {
-		select {
-		case <-ticker.C:
-			slog.Info("ticker")
-		case <-ctx.Done():
-			slog.Info("ticker stopped")
-			return
+func SafeExecute(fn func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("recovered: %s\n", r)
 		}
+	}()
+	fn()
+}
+
+func SafeExecuteIntoErr(fn func()) (err error) {
+	// var err error = nil
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("recovered: %v", r)
+		}
+	}()
+	fn()
+
+	return err
+}
+
+func openFile() error {
+	file, err := os.Open("./course/day5d.go")
+	if err != nil {
+		fmt.Println("not opened")
+		return err
+	}
+	fmt.Println("opened")
+	defer file.Close()
+
+	if true {
+		return errors.New("unexpected error")
 	}
 
+	return nil
+}
+
+func ExecuteWithLogging(fn func() error) error {
+	err := fn()
+	if err != nil {
+		log.Println(err)
+	}
+
+	return err
+}
+
+func Day5d() {
+	// ex 16
+	MustParseURL("test.com")
+	// MustParseURL("")
+
+	// ex 17
+	SafeExecute(func() { MustParseURL("") })
+
+	// ex 18
+	err := SafeExecuteIntoErr(func() { MustParseURL("") })
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// ex 19
+	openFile()
+
+	// ex 20
+	err = ExecuteWithLogging(func() error {
+		return SafeExecuteIntoErr(func() { MustParseURL("") })
+	})
+
+	if err != nil {
+		// log
+	}
 }

@@ -1,82 +1,68 @@
 package course
 
-import (
-	"errors"
-	"fmt"
-	"strconv"
-)
+import "fmt"
 
-func ValidateAge(age int) error {
-	if age < 0 || age > 120 {
-		return fmt.Errorf("age %d is out of range [0-120]", age)
-	}
-
-	return nil
+type stringer interface {
+	String() string
 }
 
-func ProcessOrder(id int, amount float64) error {
-	if id <= 0 {
-		return fmt.Errorf("id %d cannot be 0 or lower", id)
-	}
-
-	if amount <= 0 {
-		return fmt.Errorf("amount %v cannot be 0 or lower", amount)
-	}
-
-	if amount >= 10000 {
-		return fmt.Errorf("amount %v cannot be 10000 or higher", amount)
-	}
-
-	return nil
+type namedUser struct {
+	Name string
+	Age  int
 }
 
-var ErrNotFound = errors.New("item not found")
-var ErrPermissionDenied = errors.New("permission denied")
+type namedBook struct {
+	Title  string
+	Author string
+}
 
-func FindUser(id int) (*user, error) {
-	if id == 0 {
-		return nil, ErrNotFound
-	}
+func (u namedUser) String() string {
+	return fmt.Sprintf("%s, %d", u.Name, u.Age)
+}
 
-	return nil, nil
+func (b namedBook) String() string {
+	return fmt.Sprintf("\"%s\" by %s", b.Title, b.Author)
+}
+
+var _ stringer = namedUser{}
+var _ stringer = namedBook{}
+
+func printInfo(s stringer) {
+	fmt.Println(s.String())
 }
 
 func Day4a() {
-	// ex 1, 2
-	ages := []int{10, -1, 121}
-
-	for _, age := range ages {
-		err := ValidateAge(age)
-		if err != nil {
-			fmt.Println(err)
-		}
+	// ex 1
+	mark := namedUser{
+		Name: "Mark",
+		Age:  32,
 	}
+
+	fmt.Println(mark.String())
+
+	// ex 2
+	printInfo(mark)
 
 	// ex 3
 
-	err1 := ProcessOrder(0, 1000)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
-	err2 := ProcessOrder(1, 0)
-	if err2 != nil {
-		fmt.Println(err2)
-	}
-	err3 := ProcessOrder(2, 1000)
-	if err3 != nil {
-		fmt.Println(err3)
+	orbium := namedBook{
+		Title:  "De revolutionibus orbium coelestium",
+		Author: "Nicolas Copernicus",
 	}
 
-	// ex4
+	printInfo(orbium)
 
-	_, err4 := FindUser(0)
+	// ex 4
 
-	if err4 == ErrNotFound {
-		fmt.Println(err4)
+	var s stringer
+	if s == nil {
+		fmt.Println("s is nil")
+		// s.String() -- panic: runtime error: invalid memory address or nil pointer dereference
 	}
 
-	// ex5
-
-	val, _ := strconv.Atoi("123")
-	fmt.Println(val)
+	// ex 5
+	items := []stringer{mark, orbium}
+	for _, item := range items {
+		fmt.Println(item.String())
+	}
 }

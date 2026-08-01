@@ -1,109 +1,99 @@
 package course
 
-import (
-	"encoding/json"
-	"fmt"
+import "fmt"
 
-	"github.com/robert-janaszek/go-learning/bank"
-)
-
-type product struct {
-	ID           int     `json:"product_id"`
-	Name         string  `json:"name"`
-	Price        float64 `json:"price"`
-	InternalCode string  `json:"-"`
-	Discount     float64 `json:"discount,omitempty"`
+type player struct {
+	Name   string
+	Health int
 }
 
-type cartItem struct {
-	Product  product
-	Quantity int
-}
-type cart struct {
-	Items []cartItem
-}
+func takeDamage(p *player, damage int) {
+	p.Health -= damage
 
-func (c *cart) AddItem(p product, qty int) {
-	item := cartItem{Product: p, Quantity: qty}
-	c.Items = append(c.Items, item)
-}
-func (c cart) Total() float64 {
-	var total float64 = 0
-
-	for _, item := range c.Items {
-		total += float64(item.Quantity) * (item.Product.Price - item.Product.Discount)
+	if p.Health < 0 {
+		p.Health = 0
 	}
+}
 
-	return total
+func (p *player) TakeDamage(damage int) {
+	p.Health -= damage
+
+	if p.Health < 0 {
+		p.Health = 0
+	}
+}
+
+func (p player) Heal(value int) player {
+	p.Health += value
+
+	return p
+}
+
+func (p *player) Heal2(value int) {
+	p.Health += value
+}
+
+type optionalUser struct {
+	Name string
+	Age  *int
 }
 
 func Day2c() {
 	// ex 16
-	p := product{ID: 1, Name: "hairdryer", Price: 300}
-	j, err := json.Marshal(p)
-
-	if err != nil {
-		return
+	p := player{
+		Name:   "Robert",
+		Health: 100,
 	}
 
-	fmt.Println(string(j))
+	fmt.Println(p)
+
+	takeDamage(&p, 20)
+
+	fmt.Println(p)
+
+	p.TakeDamage(20)
+
+	fmt.Println(p) // 60
 
 	// ex 17
-	p1 := product{
-		ID:           2,
-		Name:         "hairdryer 2",
-		Price:        400,
-		InternalCode: "secret",
-		Discount:     50,
-	}
-	j1, err := json.Marshal(p1)
+	var healedCopy = p.Heal(1)
+	p.Heal2(20)
 
-	if err != nil {
-		return
-	}
-
-	fmt.Println(string(j1))
+	fmt.Println(healedCopy) // 61 health
+	fmt.Println(p)          // 80 health
 
 	// ex 18
-	jsonData := []byte(`{"name":"Laptop", "price": 2500}`)
-	var p2 product
-	err = json.Unmarshal(jsonData, &p2)
+	newPlayer := &player{Name: "New", Health: 100}
 
-	if err != nil {
-		return
-	}
+	newPlayer.Health += 20
+	(*newPlayer).Health += 1
 
-	fmt.Printf("%+v\n", p2)
+	fmt.Println(newPlayer)
 
 	// ex 19
-	c := cart{}
-	c.AddItem(p1, 1)
-	c.AddItem(p2, 3)
 
-	fmt.Println(c.Total())
+	user1 := optionalUser{Name: "John"}
+	age := 40
+	user2 := optionalUser{Name: "Sophia", Age: &age}
+
+	fmt.Println(user1, user2)
 
 	// ex 20
 
-	account := bank.Account{}
-	err = account.Deposit(150)
+	slice := []player{{}, {}}
+	fmt.Println(slice)
 
-	if err != nil {
-		fmt.Println(err)
+	for i := 0; i <= len(slice); i++ {
+		if i == len(slice) {
+			// fmt.Println(slice[i]) - out of range
+		} else {
+			fmt.Println(slice[i])
+		}
 	}
 
-	fmt.Println(account.Balance())
-
-	err = account.Withdraw(100)
-	if err != nil {
-		fmt.Println(err)
+	for _, item := range slice {
+		item.Health = 10 // works on copy, not reference
 	}
 
-	err = account.Withdraw(100)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(account.Balance())
-
-	// account.balance = 100 -- not allowed
+	fmt.Println(slice)
 }

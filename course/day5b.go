@@ -1,64 +1,75 @@
 package course
 
 import (
-	"context"
 	"fmt"
-	"time"
+	"strings"
 )
 
-func processRequest(ctx context.Context) {
-	// reqId := ctx.Value("request_id")
+type ValidationError struct {
+	Field   string
+	Message string
+}
 
-	// switch reqId.(type) {
-	// case string:
-	// 	fmt.Println("This is string")
-	// }
+func (v ValidationError) Error() string {
+	return fmt.Sprintf("[%s]: %s", v.Field, v.Message)
+}
 
-	id, ok := ctx.Value("request_id").(string)
-
-	if ok {
-		fmt.Println(id)
+func validate() error {
+	return ValidationError{
+		Field:   "id",
+		Message: "id cannot be 0",
 	}
 }
 
-func run(ctx context.Context) {
-	for i := 0; i < 1000; i++ {
-		select {
-		case <-ctx.Done():
-			fmt.Println("stopped", ctx.Err())
-			return
-		default:
-			fmt.Println("work...")
-			time.Sleep(100 * time.Millisecond)
-		}
+func RegisterUser(email, password string) error {
+	if !strings.Contains(email, "@") {
+		return &ValidationError{Field: "email", Message: "missing @"}
 	}
+
+	return nil
 }
 
-func cancelFunc(cancel func()) {
-	time.Sleep(1000 * time.Millisecond)
-	cancel()
+func badValidate() error {
+	var customErr *ValidationError = nil
+
+	return customErr
+}
+func badValidate1() error {
+	// var customErr *ValidationError = nil
+
+	return nil
 }
 
 func Day5b() {
 	// ex 6
-	ctx := context.Background()
+	fmt.Println(validate())
 
 	// ex 7
-	ctx = context.WithValue(ctx, "request_id", "abc-123")
-
-	processRequest(ctx)
+	err1 := RegisterUser("test", "test")
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+	err2 := RegisterUser("test@test.com", "test")
+	if err2 != nil {
+		fmt.Println(err2)
+	}
 
 	// ex 8
-	ctx, cancel := context.WithCancel(context.Background())
-
-	go cancelFunc(cancel)
-
-	run(ctx)
+	ve, ok := err1.(*ValidationError)
+	if ok {
+		fmt.Println(ve.Field)
+		fmt.Println(ve.Message)
+	}
 
 	// ex 9
-	ctx, cancel = context.WithTimeout(context.Background(), 100*time.Millisecond)
+	err3 := badValidate()
+	if err3 != nil {
+		fmt.Println(err3) // <nil>
+	}
 
-	defer cancel()
-
-	run(ctx)
+	// ex 10
+	err4 := badValidate1()
+	if err4 != nil {
+		fmt.Println(err4)
+	}
 }

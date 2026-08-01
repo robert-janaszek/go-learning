@@ -1,119 +1,107 @@
-Oto **20 zadań na Dzień 3: Struktury (`Structs`), Metody i Brak Klas**.
+Oto **20 zadań na Dzień 2: Zmienne, Typy i Wskaźniki**, które przeprowadzą Cię od podstaw zmiennych i typów, przez manipulację pamięcią, aż po niuanse przekazywania danych do funkcji.
 
-Twój cel na dziś: opanować kompozycję zamiast dziedziczenia oraz nauczyć się pisać metody przyczepiane do struktur z odpowiednim odbiorcą (*value* vs *pointer receiver*).
-
----
-
-## Część 1: Definiowanie i Inicjalizacja Struktur (Zadania 1–5)
-
-### Zadanie 1: Podstawowa struktura
-
-Zdefiniuj strukturę `Book` z polami: `Title` (string), `Author` (string), `Pages` (int), `IsRead` (bool). Utwórz instancję tej struktury w `main()` podając nazwy pól (*struct literal*) i wyświetl ją.
-
-### Zadanie 2: Różne sposoby inicjalizacji
-
-Utwórz 3 instancje struktury `Book`:
-
-1. Używając nazw pól (`Book{Title: "...", ...}`).
-2. Bez nazw pól (uważaj na kolejność!).
-3. Pustą instancję (`b := Book{}`) i uzupełnij pola w osobnych liniach (`b.Title = "..."`).
-
-### Zadanie 3: Wskaźnik do struktury i funkcja fabrykująca (Constructor Pattern)
-
-W Go nie ma słowa `new` w kontekście klas. Tworzy się funkcje typu `NewBook`. Napisz funkcję `NewBook(title, author string, pages int) *Book`, która zwraca **wskaźnik** do nowo utworzonej struktury.
-
-### Zadanie 4: Anonimowa struktura (Ad-hoc Struct)
-
-Często w Go (np. w testach lub przy wyciąganiu JSON-a) tworzy się struktury jednorazowe. Stwórz anonimową strukturę zawierającą pola `ConfigName` oraz `Port`, zainicjalizuj ją od razu wartościami i wyświetl.
-
-### Zadanie 5: Porównywanie struktur
-
-Stwórz dwie instancje `Book` o identycznych wartościach. Sprawdź warunkiem `if b1 == b2`, czy Go potrafi je porównać. Następnie dodaj do struktury pole typu slice `Tags []string` i sprawdź, dlaczego kod przestał się kompilować (struktury z typami referencyjnymi nie są porównywalne operatorem `==`).
+Podzieliłem je na sekcje, abyś stopniowo budował intuicję wokół wskaźników.
 
 ---
 
-## Część 2: Metody – Pointer vs Value Receiver (Zadania 6–10)
+## Część 1: Zmienne, Typy i Deklaracje (Zadania 1–5)
 
-### Zadanie 6: Pierwsza metoda z Value Receiverem
+### Zadanie 1: Różne sposoby deklaracji
 
-Dodaj do struktury `Book` metodę `Summary() string`. Metoda ma zwracać napis w formacie `"Title" by Author (X pages)`. Zastosuj *value receiver* `(b Book)`.
+Zadeklaruj zmienną `age` typu `int` na 3 sposoby: z użyciem `var` z podaniem typu, z użyciem `var` z inferencją typu oraz z użyciem krótkiej deklaracji `:=`. Wydrukuj ich typy za pomocą `fmt.Printf("%T\n", age)`.
 
-### Zadanie 7: Metoda z Pointer Receiverem (Modyfikacja stanu)
+### Zadanie 2: Konwersja typów (Brak implicit casting)
 
-Dodaj do `Book` metodę `MarkAsRead()`. Przemyśl: czy odbierak metody powinien być wskaźnikiem `(b *Book)` czy wartością `(b Book)`? Przetestuj w `main()`, wywołując tę metodę na książce, która miała `IsRead = false`.
+W JS możesz dodać `5 + "5"`. W Go nie ma automatycznej rzutowania typów. Stwórz zmienną `a int = 42` oraz `b float64 = 3.14`. Przekonwertuj `a` na `float64`, dodaj do `b` i wynik przypisz do nowej zmiennej.
 
-### Zadanie 8: Wywołanie metody z pointer receiverem na wartości
+### Zadanie 3: Zero Values (Wartości Domyślne)
 
-Stwórz zmienną `b := Book{Title: "Go in Action"}` (zwykła wartość, nie wskaźnik). Wywołaj na niej metodę `MarkAsRead()` z Zadania 7. Zauważ, że Go **automatycznie pobiera adres** (`(&b).MarkAsRead()`) – nie musisz zamieniać zmiennej na wskaźnik.
+W JS niezainicjalizowana zmienna to `undefined`. Zadeklaruj za pomocą `var` bez przypisywania wartości: `int`, `float64`, `string`, `bool` oraz wskaźnik `*int`. Wydrukuj je i sprawdź, jakie mają wartości domyślne (*zero values*).
 
-### Zadanie 9: Metody na typach własnych (podstawowych)
+### Zadanie 4: Stałe (`const`) i `iota`
 
-W Go metody można przyczepiać nie tylko do struktur! Zdefiniuj własny typ: `type Celsius float64`. Dodaj do niego metodę `ToFahrenheit() float64`. Przetestuj w `main()`.
+Stwórz blok stałych reprezentujących dni tygodnia (od `Monday` do `Sunday`) z użyciem generatora `iota`. Wyświetl ich wartości liczbowe w konsoli.
 
-### Zadanie 10: Metoda zmieniająca typ własny
+### Zadanie 5: Shadowing (Przysłanianie zmiennych)
 
-Do typu `Celsius` dodaj metodę `Add(degrees float64)`. Wybierz odpowiedni receiver, aby metoda faktycznie modyfikowała wartość temperatury, na której została wywołana.
-
----
-
-## Część 3: Kompozycja i Osadzanie (Embedding) Zamiast Dziedziczenia (Zadania 11–15)
-
-### Zadanie 11: Zwykłe zagnieżdżenie struktur
-
-Stwórz strukturę `Address` (`City string`, `ZipCode string`). Stwórz strukturę `User` z polami `Name string` oraz `Addr Address`. Zainicjalizuj `User` i wyświetl miasto użytkownika (`u.Addr.City`).
-
-### Zadanie 12: Anonymous Struct Embedding (Promowane pola)
-
-Zmodyfikuj `User` tak, aby pole `Address` było **anonimowe** (tzw. osadzone/embedded struct):
-
-```go
-type User struct {
-    Name string
-    Address // Brak nazwy pola, tylko typ!
-}
-
-```
-
-Sprawdź w `main()`, jak działa tzw. *field promotion* – uzyskaj dostęp do miasta pisząc po prostu `u.City`.
-
-### Zadanie 13: Nadpisywanie pól i metod (Shadowing w kompozycji)
-
-Dodaj do `Address` metodę `FullAddress() string`. Następnie dodaj do `User` własną metodę `FullAddress() string`, która zwraca imię i adres. Wywołaj obie w `main()` i sprawdź, jak Go rozwiązuje konflikty nazw.
-
-### Zadanie 14: Osadzanie wskaźnika do struktury
-
-Stwórz strukturę `Engine` (`HorsePower int`). Stwórz strukturę `Car` z osadzonym wskaźnikiem `*Engine`. Sprawdź, co się stanie, gdy wywołasz metodę na `Car`, jeśli `Engine` jest równy `nil`.
-
-### Zadanie 15: Kompozycja z wielu struktur
-
-Stwórz dwie małe struktury: `Logger` (metoda `Log(msg string)`) oraz `Database` (metoda `Connect()`). Stwórz strukturę `Server`, która osadza **obie** te struktury. Wywołaj `server.Log()` oraz `server.Connect()`.
+Stwórz zmienną `x := 10` w zewnętrznym bloku. Otwórz nowy blok kodu `{ ... }`, zadeklaruj w nim `x := 20` i wyświetl `x`. Poza blokiem wyświetl ponownie `x`. Przeanalizuj, co się stało.
 
 ---
 
-## Część 4: Praktyczne wzorce, JSON i Tagi (Zadania 16–20)
+## Część 2: Podstawy Wskaźników – Adresy i Dereferencja (Zadania 6–10)
 
-### Zadanie 16: Tagi struktur (`Struct Tags`)
+### Zadanie 6: Pobieranie adresu (`&`)
 
-Zdefiniuj strukturę `Product` z polami `ID int`, `Name string`, `Price float64`. Dodaj tagi JSON, np. `json:"product_id"`. Użyj `json.Marshal(p)` z pakietu `encoding/json`, aby zmienić strukturę na bajty JSON i wyświetl wynik w konsoli (`string(bytes)`).
+Stwórz zmienną `score := 100`. Stwórz zmienną `ptr`, która przechowuje adres zmiennej `score`. Wydrukuj wartość `score`, adres `score` oraz typ zmiennej `ptr`.
 
-### Zadanie 17: Ukrywanie pól w JSON (`json:"-"` i `omitempty`)
+### Zadanie 7: Dereferencja (`*`)
 
-Dodaj do struktury `Product` pola:
+Mając wskaźnik `ptr` z Zadania 6, zmień wartość `score` na `200` **używając tylko wskaźnika `ptr**` (operator dereferencji `*ptr = ...`). Wydrukuj `score`.
 
-* `InternalCode string` – ma być ignorowane przez JSON (`json:"-"`).
-* `Discount float64` – ma być pomijane w JSON-ie, jeśli jest równe 0 (`json:"discount,omitempty"`).
-Sprawdź działanie `json.Marshal`.
+### Zadanie 8: Dwa wskaźniki do jednej zmiennej
 
-### Zadanie 18: Unmarshaling (JSON -> Struct)
+Stwórz `x := 50`. Stwórz dwa wskaźniki `p1` oraz `p2`, oba wskazujące na `x`. Zmień wartość przez `p1` na `100`, a następnie wydrukuj wartość pobraną przez `*p2`.
 
-Stwórz zmienną ze stringiem reprezentującym JSON: `jsonData := []byte('{"name":"Laptop", "price": 2500}')`. Użyj `json.Unmarshal(jsonData, &p)` do wczytania danych do struktury `Product`. Uważaj: dlaczego musisz przekazać `&p` (wskaźnik), a nie samo `p`?
+### Zadanie 9: Wskaźnik typu Nil (`nil pointer`)
 
-### Zadanie 19: Koszyk sklepowy z metodą wyliczającą sumę
+Zadeklaruj wskaźnik `var p *int` (bez przypisywania adresu). Sprawdź warunkiem `if p == nil`, czy wskaźnik jest pusty. Zobacz, co się stanie (i jaki błąd zgłosi runtime), jeśli spróbujesz zrobić `*p = 10` bez inicjalizacji (tzw. *nil pointer dereference panic*).
 
-Zrób rozgrzewkę przed projektem: Stwórz `CartItem` (`Product Product`, `Quantity int`). Stwórz `Cart` z polem `Items []CartItem`. Dodaj metody: `AddItem(p Product, qty int)` oraz `Total() float64`.
+### Zadanie 10: Podwójny wskaźnik (`**int`)
 
-### Zadanie 20: Enkapsulacja i prywatne pola
+Stwórz zmienną `val := 42`. Stwórz wskaźnik `p` wskazujący na `val`. Stwórz wskaźnik do wskaźnika `pp` (typ `**int`) wskazujący na `p`. Odczytaj wartość `42` używając tylko `pp`.
 
-Stwórz pod-pakiet w folderze `bank/`. Zdefiniuj w nim strukturę `Account` z **prywatnym** polem `balance float64`. Udostępnij publiczne metody `Deposit(amount float64)`, `Withdraw(amount float64) error` oraz `Balance() float64`. Sprawdź w `main.go`, że nie możesz zmodyfikować pola `balance` bezpośrednio.
+---
+
+## Część 3: Wskaźniki w Funkcjach (Zadania 11–15)
+
+### Zadanie 11: Swap (Zamiana wartości)
+
+Napisz funkcję `swap(a, b *int)`, która zamienia wartości dwóch zmiennych miejscami. Przetestuj ją w `main()` na dwóch zmiennych `x := 1` i `y := 2`.
+
+### Zadanie 12: Modyfikacja napisu (`string`)
+
+Napisz funkcję `uppercase(s *string)`, która przyjmuje wskaźnik do `stringa` i zmienia jego treść na wielkie litery (użyj `strings.ToUpper`). Sprawdź wynik w `main()`.
+
+### Zadanie 13: Bezpieczne dzielenie z opcjonalnym wynikiem
+
+Napisz funkcję `safeDivide(a, b float64, result *float64) bool`. Jeśli `b == 0`, funkcja zwraca `false`. Jeśli nie, zapisuje wynik pod adres `result` i zwraca `true`.
+
+### Zadanie 14: Licznik (Incementator)
+
+Stwórz strukturę/zmienną reprezentującą licznik. Napisz funkcję `increment(val *int)`, która zwiększa wartość o 1 przy każdym wywołaniu. Wywołaj ją 3 razy w pętli.
+
+### Zadanie 15: Funkcja zwracająca wskaźnik
+
+Napisz funkcję `createInt(val int) *int`, która tworzy lokalną zmienną wewnątrz funkcji i zwraca jej adres `&localVal`.
+*(Kontekst dla programisty C/C++: W Go to jest w pełni bezpieczne! Kompilator zrobi Escape Analysis i zaalokuje tę zmienną na stercie zamiast na stosie).*
+
+---
+
+## Część 4: Wskaźniki i Struktury (Zadania 16–20)
+
+### Zadanie 16: Struktura Gracz i modyfikacja stanu
+
+Zdefiniuj strukturę `Player` z polami `Name string` i `Health int`. Napisz funkcję `takeDamage(p *Player, amount int)`, która zmniejsza punkty życia gracza.
+
+### Zadanie 17: Receiver wartości vs Receiver wskaźnika
+
+Do struktury `Player` z dodaj dwie metody:
+
+1. `HealValue(amount int)` z *value receiverem* `(p Player)`
+2. `HealPointer(amount int)` z *pointer receiverem* `(p *Player)`
+Wywołaj obie w `main()` i zaobserwuj, która metoda faktycznie leczy gracza.
+
+### Zadanie 18: Automatyczna dereferencja w strukturach
+
+Stwórz wskaźnik do struktury `p := &Player{Name: "Gopher", Health: 100}`. Zmień jego pole `Health` na `90` wpisując po prostu `p.Health = 90`. Zauważ, że w Go nie musisz pisać `(*p).Health = 90` – język robi to automatycznie!
+
+### Zadanie 19: Opcjonalne pola w strukturach (Koncept z JS/TS)
+
+W TypeScript masz opcjonalne pola `age?: number` (które mogą być `undefined`). W Go robi się to wskaźnikami!
+Stwórz strukturę `User` z polami `Name string` oraz `Age *int`. Stwórz jednego użytkownika bez podanego wieku (`Age = nil`) i jednego z wiekiem.
+
+### Zadanie 20: Wyciek pamięci / Pętla na strukturach
+
+Stwórz wycinek (slice) struktur `[]Player`. Prziteruj po nim pętlą `for _, player := range players`. Spróbuj zmienić `player.Health = 0` wewnątrz pętli. Sprawdź, dlaczego to **nie działa** (zmienna w pętli `range` jest tylko kopią) i jak to naprawić używając indeksów `players[i].Health = 0`.
 
 ---

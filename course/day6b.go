@@ -1,48 +1,64 @@
 package course
 
 import (
+	"context"
 	"fmt"
+	"time"
 )
 
-func send(ch chan<- string) {
-	ch <- "ping"
+func processRequest(ctx context.Context) {
+	// reqId := ctx.Value("request_id")
+
+	// switch reqId.(type) {
+	// case string:
+	// 	fmt.Println("This is string")
+	// }
+
+	id, ok := ctx.Value("request_id").(string)
+
+	if ok {
+		fmt.Println(id)
+	}
 }
 
-func producer(ch chan<- int) {
-	for i := 1; i < 6; i++ {
-		ch <- i
+func run(ctx context.Context) {
+	for i := 0; i < 1000; i++ {
+		select {
+		case <-ctx.Done():
+			fmt.Println("stopped", ctx.Err())
+			return
+		default:
+			fmt.Println("work...")
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
-	close(ch)
+}
+
+func cancelFunc(cancel func()) {
+	time.Sleep(1000 * time.Millisecond)
+	cancel()
 }
 
 func Day6b() {
 	// ex 6
-	ch := make(chan string)
-	go send(ch)
-	msg := <-ch
-	fmt.Println(msg)
+	ctx := context.Background()
+
 	// ex 7
-	// ch <- "data" // all goroutines are asleep - deadlock!
+	ctx = context.WithValue(ctx, "request_id", "abc-123")
+
+	processRequest(ctx)
 
 	// ex 8
-	chb := make(chan int, 2)
-	chb <- 1
-	chb <- 2
-	// chb <- 3 // deadlock
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go cancelFunc(cancel)
+
+	run(ctx)
 
 	// ex 9
-	chc := make(chan int)
+	ctx, cancel = context.WithTimeout(context.Background(), 100*time.Millisecond)
 
-	go producer(chc)
+	defer cancel()
 
-	val, ok := <-chc
-	fmt.Println(val, ok)
-	for val = range chc {
-		fmt.Println(val)
-	}
-
-	// ex 10
-	val, ok = <-chc
-	fmt.Println(val, ok)
-
+	run(ctx)
 }

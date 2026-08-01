@@ -1,136 +1,125 @@
-Here are **20 exercises for Day 6: Concurrency – Goroutines, Channels, and Select**.
+Here are **20 exercises for Day 6: Packages, Project Structure, and the Standard Library**.
 
-Today you dive into one of Go’s most important and distinctive features. Instead of Node.js’s single-threaded event loop and Promises, you will learn the **CSP (Communicating Sequential Processes)** model.
-
-Go’s golden rule: *"Do not communicate by sharing memory; share memory by communicating."*
+Today you move from single-file scripts to building **real, structured Go applications**. You will master package organization, encapsulation (field visibility), and key standard library packages (`net/http`, `context`, `slog`, `time`).
 
 ---
 
-## Part 1: Lightweight Threads (`Goroutines`) and Synchronization (Exercises 1–5)
+## Part 1: Packages, Visibility, and Project Structure (Exercises 1–5)
 
-### Exercise 1: Your first goroutine
+### Exercise 1: Your first sub-package
 
-Write a `sayHello(name string)` function that prints a greeting. Call it from `main()` with the `go` keyword: `go sayHello("Gopher")`. Notice that the program exits before the function prints anything. Figure out why that happened.
+Create a `config/` folder with a `config.go` file declaring `package config`. Define an `AppConfig` struct with a `Port int` field. Import this package in the main `main.go` file and use the struct.
 
-### Exercise 2: Waiting for goroutines (`sync.WaitGroup`)
+### Exercise 2: Public vs Private (Capitalization)
 
-Use a `sync.WaitGroup` to fix Exercise 1:
+In the `config` package, create two functions: `Load()` (public) and `parseEnv()` (private). See what happens when you try to call `config.parseEnv()` from `main.go`.
 
-1. Create `var wg sync.WaitGroup`.
-2. Add a task to the counter: `wg.Add(1)`.
-3. Pass a pointer to `wg` into the goroutine and call `defer wg.Done()` inside it.
-4. At the end of `main()`, call `wg.Wait()`.
+### Exercise 3: Encapsulation and Getters/Setters
 
-### Exercise 3: Launching many goroutines in a loop (the loop-variable trap)
+In a new `user/` package, define a `User` struct with a private `email string` field. Expose public methods `SetEmail(e string) error` (with `@` validation) and `Email() string` (getter).
 
-Start 5 goroutines in a `for i := 0; i < 5; i++` loop. Pass `i` as an argument into the function inside the goroutine. Check what happens if, instead of passing `i` as a parameter, you use it directly inside an anonymous function: `go func() { fmt.Println(i) }()`.
+> **Go idiom tip:** Go does not use a `Get` prefix for getters. Instead of `GetEmail()`, just use `Email()`.
 
-### Exercise 4: Investigating data races
+### Exercise 4: Import aliases and avoiding conflicts
 
-Write a program where 100 goroutines increment a shared `counter++` variable at the same time with no synchronization. Run it with the race detector:
-
-```bash
-go run -race main.go
-
-```
-
-Observe the *Data Race* report.
-
-### Exercise 5: Mutex – protecting shared resources (`sync.Mutex`)
-
-Fix the race from Exercise 4. Use `var mu sync.Mutex` and protect the counter update with `mu.Lock()` and `mu.Unlock()`. Run again with `-race` and confirm the race is gone.
-
----
-
-## Part 2: Channels – Basics (Exercises 6–10)
-
-### Exercise 6: Unbuffered channel
-
-Create a channel that carries strings: `ch := make(chan string)`. Start a goroutine that sends a message: `ch <- "ping"`. In the main goroutine, receive it into a variable: `msg := <-ch` and print it.
-
-### Exercise 7: Blocking with no receiver (Deadlock)
-
-See what happens when you send to an unbuffered channel with `ch <- "data"` in the same goroutine (`main`), without starting another goroutine to receive. Analyze the error *fatal error: all goroutines are asleep - deadlock!*.
-
-### Exercise 8: Buffered channel
-
-Create a channel with buffer size 2: `ch := make(chan int, 2)`. Send two values back-to-back in the main goroutine (`ch <- 1`, `ch <- 2`). Notice the program does not block. What happens if you try to send a third value?
-
-### Exercise 9: Closing a channel (`close`) and `range`
-
-Write a producer goroutine that sends numbers 1 through 5 into a channel, then **closes the channel**: `close(ch)`. In the main goroutine (consumer), use `for val := range ch` to receive all values.
-
-### Exercise 10: Safely checking whether a channel is open
-
-Receive from a closed channel with the two-value form: `val, ok := <-ch`. Check what `val` and `ok` are for an open vs closed channel.
-
----
-
-## Part 3: `select` and Advanced Patterns (Exercises 11–15)
-
-### Exercise 11: The `select` statement
-
-Create two channels `ch1` and `ch2`. Start two goroutines that send to those channels after different delays (`time.Sleep`). Use a `select` block to receive from whichever channel responds **first**.
-
-### Exercise 12: Operation timeout with `select`
-
-Write a function that reads from a channel with a time limit. Use `select` combining your channel with `time.After(2 * time.Second)`:
+Imagine you import two packages with the same final name (e.g. `math/rand` and `crypto/rand`). Use an import alias in `main.go` so you can use both at once:
 
 ```go
-select {
-case res := <-dataChan:
-    fmt.Println("Received:", res)
-case <-time.After(2 * time.Second):
-    fmt.Println("Timeout!")
-}
+import (
+    crand "crypto/rand"
+    mrand "math/rand"
+)
 
 ```
 
-### Exercise 13: Directional channels
+### Exercise 5: Blank imports (Side-effects `_`)
 
-For stronger type safety, functions can restrict channel permissions:
-
-* `func produce(ch chan<- int)` – send-only channel.
-* `func consume(ch <-chan int)` – receive-only channel.
-
-Write two functions with those signatures and connect them with a channel in `main()`.
-
-### Exercise 14: Cancellation with `ctx.Done()` and `select`
-
-Write a worker in an infinite `for` loop that uses `select` to watch two channels: a jobs channel and `ctx.Done()` from a context. When the context is cancelled, the worker should exit.
-
-### Exercise 15: Non-blocking channel operations (`default` in `select`)
-
-Use a `default` clause in a `select` block to attempt a receive without blocking when the channel is empty.
+See how imports work when you only need side effects (e.g. registering a database driver): `import _ "[github.com/lib/pq](https://github.com/lib/pq)"`. Learn what the special `init()` function is for in packages.
 
 ---
 
-## Part 4: Practical Concurrency Patterns (Exercises 16–20)
+## Part 2: Context (`context.Context`) – A Core Go Concept (Exercises 6–10)
 
-### Exercise 16: Worker pool
+### Exercise 6: Creating a base context
 
-This is one of the most common production patterns in Go!
+In Go, `context.Context` carries cancellation signals, deadlines, and request metadata. Create a base context with `ctx := context.Background()`.
 
-1. Create `jobs := make(chan int, 100)`.
-2. Create `results := make(chan int, 100)`.
-3. Start 3 worker goroutines; each loops over `jobs`, does work (e.g. `job * 2`), and sends to `results`.
-4. Send 10 jobs and close `jobs`. Receive 10 results.
+### Exercise 7: Passing values in context (`context.WithValue`)
 
-### Exercise 17: Fan-Out, Fan-In
+Create a function `processRequest(ctx context.Context)`. Add a request ID to the context: `ctx = context.WithValue(ctx, "request_id", "abc-123")`. Inside the function, extract that value and check its type with a type assertion.
 
-* **Fan-Out:** Split one job source across many goroutines working in parallel.
-* **Fan-In:** Merge results from several channels into one shared output channel via a `merge` function.
+### Exercise 8: Cancelling operations (`context.WithCancel`)
 
-### Exercise 18: HTTP request race (First Responder / Hedged Requests)
+Create a context with a cancel function: `ctx, cancel := context.WithCancel(context.Background())`. Run a simulated long operation in a `select` loop listening on `<-ctx.Done()`. Call `cancel()` and observe how the operation stops immediately.
 
-Write a function that sends the same request (e.g. fetching data) to 3 different servers/mirrors at once in separate goroutines. Use a buffered channel to take the **first response** that arrives and ignore the rest.
+### Exercise 9: Timeouts (`context.WithTimeout`)
 
-### Exercise 19: Rate limiting
+Create a context that cancels automatically after 100 milliseconds: `ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)` (always remember `defer cancel()!`). Simulate a 500 ms operation and handle interruption due to timeout.
 
-Use `time.Tick(200 * time.Millisecond)` to build a limiter that allows at most 5 requests per second.
+### Exercise 10: Passing context as the FIRST argument
 
-### Exercise 20: Empty struct for signal channels (`chan struct{}`)
+By Go convention, if a function takes a context, **it must be the first argument**: `func FetchData(ctx context.Context, id string) error`. Coming from TS (where timeouts or options often go at the end), adapt your functions to the Go standard.
 
-Often a channel only carries a signal (“something happened”), not data. In Go you use `chan struct{}` because `struct{}` takes **0 bytes**. Create `done := make(chan struct{})` and use it to notify `main()` that background work finished.
+---
+
+## Part 3: Building an HTTP Server (`net/http`) (Exercises 11–15)
+
+### Exercise 11: The simplest HTTP server
+
+Create an HTTP server without external frameworks (like Express in Node.js). Use `http.HandleFunc` with the new routing introduced in Go 1.22:
+
+```go
+http.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte("OK"))
+})
+http.ListenAndServe(":8080", nil)
+
+```
+
+### Exercise 12: Serving JSON data
+
+Write a `GET /api/user` handler that creates a `User` struct, sets the `w.Header().Set("Content-Type", "application/json")` header, and serializes data directly to the response stream with `json.NewEncoder(w).Encode(user)`.
+
+### Exercise 13: Reading JSON from the body (`POST`)
+
+Write a `POST /api/user` handler that decodes the request body into a struct with `json.NewDecoder(r.Body).Decode(&user)`. Handle errors for invalid JSON.
+
+### Exercise 14: Path parameters (Path Values in Go 1.22+)
+
+Write a `GET /users/{id}` handler that reads a variable from the URL using the built-in method `id := r.PathValue("id")`.
+
+### Exercise 15: Simple HTTP middleware
+
+Middleware in Go is a function that takes an `http.Handler` and returns an `http.Handler`. Write a `LoggingMiddleware` that measures how long each HTTP request takes (use `time.Now()` and `time.Since()`) and prints the method and path.
+
+---
+
+## Part 4: Modern Logging (`slog`) and Time (`time`) (Exercises 16–20)
+
+### Exercise 16: Structured logs with `log/slog`
+
+Since Go 1.21, the standard library includes the `slog` package. Instead of plain `fmt.Println`, use `slog.Info("user logged in", "user_id", 42, "role", "admin")`.
+
+### Exercise 17: Logging in JSON format
+
+Configure `slog` to emit logs in JSON format (ideal for production and Datadog/Grafana):
+
+```go
+logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+slog.SetDefault(logger)
+
+```
+
+### Exercise 18: Working safely with time (`time.Time`)
+
+In JS, date operations can be a nightmare. In Go you have a powerful `time` package. Create two dates, subtract them (`diff := t2.Sub(t1)`), get a `time.Duration`, and check how many seconds or milliseconds that is.
+
+### Exercise 19: Formatting and parsing dates
+
+In Go, dates are formatted using a **specific reference time**: `Mon Jan 2 15:04:05 MST 2006` (remember the digit layout: 1 2 3 4 5 6 7). Format the current time as `YYYY-MM-DD` using the pattern `"2006-01-02"`.
+
+### Exercise 20: Ticker and Timer
+
+Use `time.NewTicker(1 * time.Second)` to create a loop that runs an action every second (e.g. printing status to the console). Remember to stop the ticker with `defer ticker.Stop()`.
 
 ---

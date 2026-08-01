@@ -1,76 +1,109 @@
 package course
 
-import (
-	"bytes"
-	"fmt"
-	"io"
-	"os"
-)
+import "fmt"
 
-type saver interface {
-	Save() error
+type address struct {
+	City    string
+	ZipCode string
 }
 
-type document struct {
+type user struct {
 	Name string
+	Addr address
 }
 
-func (d *document) Save() error {
-	fmt.Println("Saving document " + d.Name)
-	return nil
+type embedUser struct {
+	Name string
+	address
 }
 
-type note struct {
-	note string
+func (a address) FullAddress() string {
+	return a.City
 }
 
-func (n note) Save() error {
-	return nil
+func (u embedUser) FullAddress() string {
+	return u.Name + " from " + u.address.FullAddress()
 }
 
-// pointer receiver implements method only in pointer mode, contrary to value receiver
-var _ saver = &document{}
+type engine struct {
+	HorsePower int
+}
+type car struct {
+	*engine
+}
 
-// ex 7
-// var _ saver = document{} -- cannot use document{} (value of struct type document) as saver value in variable declaration: document does not implement saver (method Save has pointer receiver)
+func (e *engine) Power() int {
+	return e.HorsePower
+}
 
-func writeHello(w io.Writer) {
-	msg := []byte("Hello Go")
-	_, err := w.Write(msg)
-	if err != nil {
-		fmt.Println(err)
-	}
+type logger struct {
+}
+
+func (l logger) Log(msg string) {
+	fmt.Println(msg)
+}
+
+type database struct{}
+
+func (d database) Connect() {
+	fmt.Println("Connected")
+}
+
+type server struct {
+	logger
+	database
 }
 
 func Day3b() {
-	// ex 6
-	doc := document{
-		Name: "CV.pdf",
+	// ex 11
+	u := user{
+		Name: "Tom",
+		Addr: address{
+			City:    "Warsaw",
+			ZipCode: "01-001",
+		},
 	}
 
-	err := doc.Save()
-	if err != nil {
-		fmt.Println(err)
+	fmt.Printf("%v\n", u)
+	fmt.Println(u.Addr.City)
+
+	// ex 12
+
+	user2 := embedUser{
+		Name: "Mark",
+		address: address{
+			City:    "Poznan",
+			ZipCode: "02-020",
+		},
 	}
 
-	// ex 8
-	var _ saver = note{}
-	var _ saver = &note{}
+	fmt.Println(user2.address)
+	fmt.Println(user2.City)
+	fmt.Println(user2.address.City)
 
-	// ex 9
-	writeHello(os.Stdout)
-	buffer := bytes.Buffer{}
-	writeHello(&buffer)
+	// ex 13
 
-	fmt.Println(buffer.String())
+	fmt.Println("// 13")
+	fmt.Println(user2.FullAddress())
+	fmt.Println(user2.address.FullAddress())
 
-	// ex 10
-	// os.Stdout - done above
-	file, err := os.Create("test.txt")
-	if err != nil {
-		fmt.Println(err)
-		return
+	// ex 14
+	c := car{}
+	e := engine{
+		HorsePower: 100,
 	}
-	defer file.Close()
-	writeHello(file)
+	c1 := car{
+		engine: &e,
+	}
+	c2 := car{&e}
+	fmt.Println(c)
+	fmt.Println(c1)
+	fmt.Println(c2)
+
+	// c.Power() -- invalid memory address or nil pointer dereference
+
+	// ex 15
+	s := server{}
+	s.Log("Log")
+	s.Connect()
 }

@@ -1,51 +1,38 @@
 package course
 
 import (
+	crand "crypto/rand"
 	"fmt"
-	"sync"
+	mrand "math/rand"
+
+	_ "github.com/lib/pq"
+
+	"github.com/robert-janaszek/go-learning/course/config"
+	userPackage "github.com/robert-janaszek/go-learning/course/user"
 )
 
-func sayHello(wg *sync.WaitGroup, name string) {
-	defer wg.Done()
-	fmt.Printf("Hi %s!\n", name)
-}
-
-func printI(wg *sync.WaitGroup, i int) {
-	defer wg.Done()
-	fmt.Println("i: ", i)
-}
-
-func inc(wg *sync.WaitGroup, mu *sync.Mutex, i *int) {
-	defer wg.Done()
-	defer mu.Unlock()
-
-	mu.Lock()
-	*i++
-}
-
 func Day6a() {
-	// ex 2
-	var wg sync.WaitGroup
-	wg.Add(1)
 	// ex 1
-	go sayHello(&wg, "Robert")
-	wg.Wait()
+	cfg := config.AppConfig{
+		Port: 1234,
+	}
+
+	fmt.Println(cfg)
+
+	// ex 2
+	config.Load()
+	// config.parseEnv() -- name parseEnv not exported by package config
 
 	// ex 3
-	wg.Add(10)
-	for i := 0; i < 5; i++ {
-		go func() { defer wg.Done(); fmt.Println(i) }()
-		go printI(&wg, i)
+	u := userPackage.User{
+		// email: "test@test1", -- cannot refer to unexported field email in struct literal of type user.User
 	}
-	wg.Wait()
+	u.SetEmail("test@test.com")
+	fmt.Println(u.Email())
 
 	// ex 4
-	counter := 0
-	var mu sync.Mutex
-	wg.Add(100)
-	for i := 0; i < 100; i++ {
-		go inc(&wg, &mu, &counter)
-	}
-	wg.Wait()
-	fmt.Print(counter) // 96, 100 with mutex
+	crandText := crand.Text()
+	mrandFloat := mrand.Float64()
+
+	fmt.Printf("crand %s, mrand %f\n", crandText, mrandFloat)
 }

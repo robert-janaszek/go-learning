@@ -1,68 +1,72 @@
 package course
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
-	"net/http"
-	"time"
+	"os"
 )
 
-// ex 15
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+func ReadConfig(path string) error {
+	_, err := os.ReadFile(path)
 
-		next.ServeHTTP(w, r)
+	if err != nil {
+		return fmt.Errorf("failed to read config file %s: %w", path, err)
+	}
 
-		duration := time.Since(start)
-		fmt.Printf("%s %s took %v", r.Method, r.URL.Path, duration)
-	})
+	return nil
+}
+
+func validateForm() error {
+	err1 := fmt.Errorf("field ID does not exist")
+	err2 := fmt.Errorf("field Name does not exist")
+	err3 := fmt.Errorf("field Path does not exist")
+
+	errs := []error{err1, err2, err3}
+
+	return errors.Join(errs...)
+}
+
+func Repository() error {
+	return ErrNotFound
+}
+
+func Service() error {
+	err := Repository()
+	return fmt.Errorf("user service: %w", err)
+}
+
+func Handler() int {
+	err := Service()
+
+	if errors.Is(err, ErrNotFound) {
+		return 404
+	}
+
+	return 200
 }
 
 func Day5c() {
 	// ex 11
-	http.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("OK"))
-	})
+	err := ReadConfig("non-existing")
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	// ex 12
-	http.HandleFunc("GET /api/user", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		u := user{
-			Name: "Mark",
-			Addr: address{
-				City:    "Warsaw",
-				ZipCode: "01-212",
-			},
-		}
-		json.NewEncoder(w).Encode(u)
-	})
+	if errors.Is(err, os.ErrNotExist) {
+		fmt.Println(err)
+	}
 
 	// ex 13
-	http.HandleFunc("POST /api/user", func(w http.ResponseWriter, r *http.Request) {
-		u := user{}
-		err := json.NewDecoder(r.Body).Decode(&u)
-		if err != nil {
-			fmt.Println("error ", err)
-
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
-
-			return
-		}
-
-		json.NewEncoder(w).Encode(u)
-	})
+	var pathErr *os.PathError
+	ok := errors.As(err, &pathErr)
+	if ok {
+		fmt.Println(pathErr.Path)
+	}
 
 	// ex 14
-	http.HandleFunc("GET /api/user/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id := r.PathValue("id")
+	fmt.Println(validateForm())
 
-		w.Write([]byte(id))
-	})
-
-	err := http.ListenAndServe(":8080", LoggingMiddleware(http.DefaultServeMux))
-	if err != nil {
-		log.Fatal(err)
-	}
+	// ex 15
+	fmt.Println(Handler())
 }

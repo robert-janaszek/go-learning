@@ -1,109 +1,135 @@
 package course
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
-type address struct {
-	City    string
-	ZipCode string
+func swap(a, b *int) {
+	temp := *a
+	*a = *b
+	*b = temp
 }
 
-type user struct {
-	Name string
-	Addr address
+func betterSwap(a, b int) (int, int) {
+	return b, a
 }
 
-type embedUser struct {
-	Name string
-	address
+func uppercase(str string) string {
+	return strings.ToUpper(str)
 }
 
-func (a address) FullAddress() string {
-	return a.City
+func uppercaseMutate(str *string) {
+	*str = strings.ToUpper(*str)
 }
 
-func (u embedUser) FullAddress() string {
-	return u.Name + " from " + u.address.FullAddress()
+func safeDivide(a, b int, result *float64) bool {
+	if b == 0 {
+		return false
+	}
+
+	*result = float64(a) / float64(b)
+
+	return true
 }
 
-type engine struct {
-	HorsePower int
-}
-type car struct {
-	*engine
-}
+func safeDivide2(a, b int) (float64, bool) {
+	if b == 0 {
+		return 0, false
+	}
 
-func (e *engine) Power() int {
-	return e.HorsePower
+	return float64(a) / float64(b), true
 }
 
-type logger struct {
+func increment(a *int) {
+	*a++
 }
 
-func (l logger) Log(msg string) {
-	fmt.Println(msg)
+func allocateInt(a int) *int {
+	localVal := a
+
+	return &localVal
 }
 
-type database struct{}
+func localInt(a int) int {
+	localVal := a
 
-func (d database) Connect() {
-	fmt.Println("Connected")
-}
-
-type server struct {
-	logger
-	database
+	return localVal
 }
 
 func Day2b() {
 	// ex 11
-	u := user{
-		Name: "Tom",
-		Addr: address{
-			City:    "Warsaw",
-			ZipCode: "01-001",
-		},
-	}
+	a := 1
+	b := 2
 
-	fmt.Printf("%v\n", u)
-	fmt.Println(u.Addr.City)
+	swap(&a, &b)
+	fmt.Println(a, b)
+
+	a = 1
+	b = 2
+	a, b = betterSwap(a, b)
+	fmt.Println(a, b)
 
 	// ex 12
 
-	user2 := embedUser{
-		Name: "Mark",
-		address: address{
-			City:    "Poznan",
-			ZipCode: "02-020",
-		},
-	}
+	str := "aBcDe"
+	newStr := uppercase(str)
+	uppercaseMutate(&str)
 
-	fmt.Println(user2.address)
-	fmt.Println(user2.City)
-	fmt.Println(user2.address.City)
+	fmt.Println(str, newStr)
 
 	// ex 13
 
-	fmt.Println("// 13")
-	fmt.Println(user2.FullAddress())
-	fmt.Println(user2.address.FullAddress())
+	a1 := 12
+	b1 := 6
+	var result float64
+	c1 := 0
+
+	done := safeDivide(a1, b1, &result)
+
+	fmt.Println(done, result) // true 2
+
+	done = safeDivide(a1, c1, &result)
+
+	fmt.Println(done, result) // false 2
+
+	result, done = safeDivide2(a1, 3)
+
+	fmt.Println(done, result)
 
 	// ex 14
-	c := car{}
-	e := engine{
-		HorsePower: 100,
-	}
-	c1 := car{
-		engine: &e,
-	}
-	c2 := car{&e}
-	fmt.Println(c)
-	fmt.Println(c1)
-	fmt.Println(c2)
+	a2 := 0
 
-	// c.Power() -- invalid memory address or nil pointer dereference
+	for i := 0; i < 3; i++ {
+		increment(&a2)
+	}
+
+	fmt.Println(a2)
+
+	a2 = 0
+
+	for range 3 {
+		increment(&a2)
+	}
+
+	a2 = 0
+
+	for i := range 3 {
+		increment(&a2)
+		fmt.Print(i)
+	}
+
+	fmt.Println()
+	fmt.Println(a2)
 
 	// ex 15
-	s := server{}
-	s.Log("Log")
-	s.Connect()
+	a3 := 12
+
+	result3 := allocateInt(a3)
+
+	fmt.Println(*result3)
+
+	outsideLocal := localInt(a3)
+
+	fmt.Println(outsideLocal)
 }
