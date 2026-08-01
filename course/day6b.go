@@ -8,11 +8,6 @@ func send(ch chan<- string) {
 	ch <- "ping"
 }
 
-// Zadanie 10: Bezpieczne sprawdzanie czy kanał jest otwarty
-// Odbierz wartość z zamkniętego kanału używając składni dwuargumentowej:
-// val, ok := <-ch. Sprawdź, jaką wartość ma val oraz ok dla
-// otwartego i zamkniętego kanału.
-
 func producer(ch chan<- int) {
 	for i := 1; i < 6; i++ {
 		ch <- i

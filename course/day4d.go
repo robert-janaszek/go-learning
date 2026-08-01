@@ -50,12 +50,6 @@ func openFile() error {
 	return nil
 }
 
-// Napisz prostą funkcję-opakowanie (middleware):
-//  ExecuteWithLogging(fn func() error).
-// Funkcja ta wywołuje fn(), sprawdza czy zwrócono błąd,
-// i jeśli tak – loguje go w konsoli ze stemplem czasowym z użyciem
-//  standardowego pakietu log.
-
 func ExecuteWithLogging(fn func() error) error {
 	err := fn()
 	if err != nil {

@@ -11,11 +11,6 @@ import (
 	userPackage "github.com/robert-janaszek/go-learning/course/user"
 )
 
-// Zobacz, jak działa import tylko dla efektów ubocznych
-// (np. rejestracja sterownika bazy danych):
-// import _ "[github.com/lib/pq](https://github.com/lib/pq)".
-//  Dowiedz się, do czego służy specjalna funkcja init() w pakietach.
-
 func Day5a() {
 	// ex 1
 	cfg := config.AppConfig{

@@ -21,11 +21,6 @@ func processInput(v any) {
 	}
 }
 
-// Stwórz interfejs Payer.
-// Stwórz strukturę CreditCard posiadającą unikalne pole CardNumber string.
-// Przypisz CreditCard do zmiennej typu Payer.
-// Użyj asercji typu, aby wydobyć CardNumber.
-
 type payer interface {
 	Pay(amount float64) error
 }

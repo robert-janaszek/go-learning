@@ -48,10 +48,6 @@ func (m mockStore) GetUsers() []string {
 	return []string{"a", "b"}
 }
 
-// Stwórz własną strukturę CustomError (Code int, Message string),
-// zaimplementuj dla niej metodę Error() string
-// i zwróć ją jako zwykły error z funkcji.
-
 type customError struct {
 	Code    int
 	Message string

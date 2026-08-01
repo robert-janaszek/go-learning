@@ -10,15 +10,6 @@ func sayHello(wg *sync.WaitGroup, name string) {
 	fmt.Printf("Hi %s!\n", name)
 }
 
-// Zadanie 4: Badanie wyścigów pamięci (Data Race)
-// Napisz program, w którym 100 goroutines jednocześnie
-// zwiększa wspólną zmienną counter++ bez żadnej synchronizacji.
-// Uruchom program w terminalu z flagą detekcji wyścigów:
-
-// go run -race main.go
-
-// Zaobserwuj raport ze skanera Data Race.
-
 func printI(wg *sync.WaitGroup, i int) {
 	defer wg.Done()
 	fmt.Println("i: ", i)
