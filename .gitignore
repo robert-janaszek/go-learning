@@ -27,6 +27,9 @@ go.work.sum
 # env file
 .env
 
+# Task manager local data
+taskmanager/test.json
+
 # Editor/IDE
 # .idea/
 # .vscode/
