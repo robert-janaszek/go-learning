@@ -3,11 +3,13 @@ package storage
 import (
 	"encoding/json"
 	"os"
+	"sync"
 	"taskmanager/task"
 )
 
 type JSONStorage struct {
 	filename string
+	mutex    sync.Mutex
 }
 
 func NewJSONStorage(filename string) *JSONStorage {
@@ -22,6 +24,9 @@ func (js *JSONStorage) Save(tasks []task.Task) error {
 		return err
 	}
 
+	js.mutex.Lock()
+	defer js.mutex.Unlock()
+
 	err = os.WriteFile(js.filename, data, 0o644)
 
 	if err != nil {
@@ -32,7 +37,9 @@ func (js *JSONStorage) Save(tasks []task.Task) error {
 }
 
 func (js *JSONStorage) Load() ([]task.Task, error) {
+	js.mutex.Lock()
 	val, err := os.ReadFile(js.filename)
+	js.mutex.Unlock()
 
 	if err != nil {
 		return nil, err
