@@ -80,3 +80,7 @@ func (ts *TaskManager) List(showAll bool) []Task {
 
 	return tasks
 }
+
+func (ts *TaskManager) Flush() error {
+	return ts.storage.Save(ts.tasks)
+}
