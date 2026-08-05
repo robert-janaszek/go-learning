@@ -1,7 +1,3 @@
-// Stwórz strukturę JSONStorage posiadającą pole filename string.
-// Zaimplementuj metody Save oraz Load przy użyciu standardowych
-// pakietów os oraz encoding/json (json.MarshalIndent / json.Unmarshal).
-
 package storage
 
 import (
