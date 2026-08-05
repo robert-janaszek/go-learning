@@ -1,4 +1,4 @@
-package course
+package days
 
 import (
 	"errors"
@@ -35,7 +35,7 @@ func SafeExecuteIntoErr(fn func()) (err error) {
 }
 
 func openFile() error {
-	file, err := os.Open("./course/day5d.go")
+	file, err := os.Open("./course/days/day5d.go")
 	if err != nil {
 		fmt.Println("not opened")
 		return err

@@ -1,4 +1,4 @@
-package course
+package days
 
 import (
 	"context"
