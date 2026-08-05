@@ -26,3 +26,5 @@ func NewTask(id int, title string) (*Task, error) {
 
 	return &task, nil
 }
+
+var ErrTaskNotFound = errors.New("task not found")

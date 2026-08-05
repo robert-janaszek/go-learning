@@ -7,29 +7,21 @@ import (
 )
 
 func main() {
-	js := storage.NewJsonStorage("test.json")
+	js := storage.NewJSONStorage("test.json")
 
-	tasks, err := js.Load()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(tasks)
-
-	learnGo, err := task.NewTask(3, "Learn Go")
+	manager, err := task.NewManager(js)
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	moreTasks := append(tasks, *learnGo)
-
-	err = js.Save(moreTasks)
+	err = manager.MarkDone(1)
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
+	fmt.Println(manager.List(false))
 }

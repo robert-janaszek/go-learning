@@ -14,7 +14,7 @@ type JSONStorage struct {
 	filename string
 }
 
-func NewJsonStorage(filename string) *JSONStorage {
+func NewJSONStorage(filename string) *JSONStorage {
 	return &JSONStorage{
 		filename: filename,
 	}
