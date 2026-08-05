@@ -1,16 +1,22 @@
 package task
 
-import "slices"
+import (
+	"fmt"
+	"slices"
+)
 
 type TaskManager struct {
 	tasks   []Task
 	storage Storage
+	Channel chan string
 }
 
 func NewManager(s Storage) (*TaskManager, error) {
 	ts := TaskManager{
 		storage: s,
 	}
+
+	ts.Channel = make(chan string, 1)
 
 	tasks, err := ts.storage.Load()
 	if err != nil {
@@ -55,6 +61,10 @@ func (ts *TaskManager) MarkDone(id int) error {
 	if !found {
 		return ErrTaskNotFound
 	}
+
+	go func() {
+		ts.Channel <- fmt.Sprintf("Task #%d completed!", id)
+	}()
 
 	err := ts.storage.Save(ts.tasks)
 

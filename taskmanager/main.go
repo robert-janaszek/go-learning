@@ -64,6 +64,9 @@ func main() {
 			log.Fatalf("%v\n", err)
 		}
 
+		msg := <-manager.Channel
+		fmt.Println(msg)
+
 	default:
 		flag.Usage()
 	}
