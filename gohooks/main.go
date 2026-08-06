@@ -8,6 +8,9 @@ import (
 func main() {
 	runtime := hook.Runtime{}
 	runtime.Render(func() {
-		fmt.Println("hello")
+		value, set := hook.UseState(0)
+		fmt.Println(value)
+		set(1)
+		fmt.Println(runtime)
 	})
 }
