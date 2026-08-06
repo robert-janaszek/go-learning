@@ -1,16 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"gohooks/components"
 	"gohooks/hook"
 )
 
 func main() {
 	runtime := hook.Runtime{}
-	runtime.Render(func() {
-		value, set := hook.UseState(0)
-		fmt.Println(value)
-		set(1)
-		fmt.Println(runtime)
-	})
+	runtime.Run(components.Counter)
 }
