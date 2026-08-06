@@ -8,8 +8,18 @@ import (
 func Counter() {
 	value, set := hook.UseState(0)
 
-	fmt.Println(value)
 	if value < 20 {
 		set(value + 1)
+	} else {
+		fmt.Println("exit, bye")
 	}
+
+	lower10 := min(value, 10)
+
+	deps := []any{lower10}
+	hook.UseEffect(func() func() {
+		fmt.Printf("value changed: %d\n", value)
+
+		return nil
+	}, deps)
 }

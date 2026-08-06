@@ -9,9 +9,16 @@ func (r *Runtime) Render(c Component) {
 	}()
 
 	r.hookIndex = 0
+	r.effectIndex = 0
 	r.component = c
 
 	c()
+
+	for _, effect := range r.effectState {
+		if effect.runAfterRender {
+			effect.effect()
+		}
+	}
 }
 
 func (r *Runtime) Run(c Component) {
