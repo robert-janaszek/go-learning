@@ -8,4 +8,5 @@ import (
 func main() {
 	runtime := hook.Runtime{}
 	runtime.Run(components.Counter)
+	runtime.Unmount()
 }

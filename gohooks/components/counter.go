@@ -20,6 +20,8 @@ func Counter() {
 	hook.UseEffect(func() func() {
 		fmt.Printf("value changed: %d\n", value)
 
-		return nil
+		return func() {
+			fmt.Printf("cleanup %d\n", value)
+		}
 	}, deps)
 }

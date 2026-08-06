@@ -12,6 +12,14 @@
       "program": "${workspaceFolder}"
     },
     {
+      "name": "Debug gohooks",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/gohooks",
+      "cwd": "${workspaceFolder}/gohooks"
+    },
+    {
       "name": "Debug current test file",
       "type": "go",
       "request": "launch",

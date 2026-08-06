@@ -14,9 +14,14 @@ func (r *Runtime) Render(c Component) {
 
 	c()
 
-	for _, effect := range r.effectState {
+	for i := range r.effectState {
+		effect := &r.effectState[i]
 		if effect.runAfterRender {
-			effect.effect()
+			if effect.cleanup != nil {
+				effect.cleanup()
+			}
+			cleanup := effect.effect()
+			effect.cleanup = cleanup
 		}
 	}
 }
@@ -35,4 +40,17 @@ func (r *Runtime) Run(c Component) {
 	if i == 50 {
 		panic("infinite loop found")
 	}
+}
+
+func (r *Runtime) Unmount() {
+	for i := range r.effectState {
+		effect := &r.effectState[i]
+
+		if effect.cleanup != nil {
+			effect.cleanup()
+		}
+	}
+
+	r.hookState = nil
+	r.effectState = nil
 }
