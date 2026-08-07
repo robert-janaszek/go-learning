@@ -288,6 +288,8 @@ Masz działający projekt, gdy:
 
 ## Opcjonalne rozszerzenia (po domknięciu 1–18)
 
+Krótsza lista poniżej — **pełny program rozszerzeń** (kanały, `UseSelect`, limit per hook, drzewo komponentów) jest w [`gohooks-advanced-pl.md`](./gohooks-advanced-pl.md).
+
 * `UseRef` — mutowalna komórka bez re-renderu
 * `UseMemo` — cache wartości przy niezmienionych deps
 * batching setterów (wiele `setState` = jeden re-render)

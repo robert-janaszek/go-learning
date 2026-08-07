@@ -288,6 +288,8 @@ The project works when:
 
 ## Optional extensions (after finishing 1–18)
 
+Short list below — the **full extension track** (channels, `UseSelect`, per-hook limit, component tree) lives in [`gohooks-advanced-en.md`](./gohooks-advanced-en.md).
+
 * `UseRef` — mutable cell without a re-render
 * `UseMemo` — cache a value while deps are unchanged
 * setter batching (many `setState` = one re-render)
