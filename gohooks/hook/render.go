@@ -32,6 +32,19 @@ func (r *Runtime) Run(c Component) {
 		r.dirty = false
 		r.Render(c)
 
+		if i == 0 {
+			r.numberOfHooks = len(r.hookState)
+			r.numberOfEffects = len(r.effectState)
+		}
+
+		if r.hookIndex != r.numberOfHooks {
+			panic("hooks order mismatch")
+		}
+
+		if r.effectIndex != r.numberOfEffects {
+			panic("effects order mismatch")
+		}
+
 		if !r.dirty {
 			break
 		}
