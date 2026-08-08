@@ -7,6 +7,7 @@ Personal playground for learning Go: a short exercise course plus two small JSON
 | Path | What it is |
 |------|------------|
 | [`course/`](course/) | Day-by-day exercises (tooling → basics → concurrency, …). Notes in [`course/docs/`](course/docs/) (EN + PL). |
+| [`course/docs/minivm-pl.md`](course/docs/minivm-pl.md) / [`minivm-en.md`](course/docs/minivm-en.md) | Project brief: mini-VM with virtual RAM (stack, heap, `Alloc`/`Free`, bytecode). |
 | [`json-parser/`](json-parser/) | Recursive-descent JSON parser → `any` (`Parse`). |
 | [`json-fixer/`](json-fixer/) | Best-effort closer for truncated JSON-like input (`Fix`). |
 | [`main.go`](main.go) | Scratch entrypoint — uncomment a `course.Day…` or call a package. |
