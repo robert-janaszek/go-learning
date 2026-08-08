@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	runtime := hook.Runtime{}
+	runtime := hook.CreateRuntime()
 	runtime.Run(components.Counter)
 	runtime.Unmount()
 }

@@ -21,7 +21,7 @@ func TestRuntimeRun(t *testing.T) {
 		{
 			name: "no-change",
 			run: func() got {
-				var rt Runtime
+				rt := CreateRuntime()
 				renders := 0
 				effectRunCount := 0
 				cleanupRunCount := 0
@@ -50,7 +50,7 @@ func TestRuntimeRun(t *testing.T) {
 		{
 			name: "one-state-update-with-effect",
 			run: func() got {
-				var rt Runtime
+				rt := CreateRuntime()
 				renders := 0
 				effectRunCount := 0
 				cleanupRunCount := 0
@@ -82,7 +82,7 @@ func TestRuntimeRun(t *testing.T) {
 		{
 			name: "one-state-update",
 			run: func() got {
-				var rt Runtime
+				rt := CreateRuntime()
 				renders := 0
 				effectRunCount := 0
 				cleanupRunCount := 0
@@ -126,7 +126,7 @@ func TestRuntimeRun(t *testing.T) {
 func TestRuntimeCleanup(t *testing.T) {
 	runLog := []string{}
 
-	rt := Runtime{}
+	rt := CreateRuntime()
 	rt.Run(func() {
 		value, set := UseState(10)
 		if value == 10 {

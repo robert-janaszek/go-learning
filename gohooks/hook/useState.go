@@ -9,7 +9,10 @@ func UseState[T any](initial T) (T, func(T)) {
 
 	setter := func(state T) {
 		r.hookState[index].state = state
-		r.dirty = true
+		select {
+		case r.updates <- struct{}{}:
+		default:
+		}
 	}
 
 	if len(r.hookState) <= index {

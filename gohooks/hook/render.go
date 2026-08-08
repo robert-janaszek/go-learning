@@ -29,7 +29,11 @@ func (r *Runtime) Render(c Component) {
 func (r *Runtime) Run(c Component) {
 	i := 0
 	for ; i < 50; i++ {
-		r.dirty = false
+		select {
+		case <-r.updates:
+		default: // TODO: change for asynchronous handling
+			return // as long as there is synchronous set state keep looping
+		}
 		r.Render(c)
 
 		if i == 0 {
@@ -43,10 +47,6 @@ func (r *Runtime) Run(c Component) {
 
 		if r.effectIndex != r.numberOfEffects {
 			panic("effects order mismatch")
-		}
-
-		if !r.dirty {
-			break
 		}
 	}
 

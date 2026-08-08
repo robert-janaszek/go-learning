@@ -6,7 +6,17 @@ type Runtime struct {
 	effectState     []effectState
 	effectIndex     int
 	component       Component
-	dirty           bool
 	numberOfHooks   int
 	numberOfEffects int
+	updates         chan struct{}
+}
+
+func CreateRuntime() *Runtime {
+	rt := &Runtime{
+		updates: make(chan struct{}, 1),
+	}
+
+	rt.updates <- struct{}{}
+
+	return rt
 }
