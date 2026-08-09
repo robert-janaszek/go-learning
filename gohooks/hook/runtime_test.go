@@ -1,6 +1,7 @@
 package hook
 
 import (
+	"context"
 	"testing"
 )
 
@@ -26,8 +27,9 @@ func TestRuntimeRun(t *testing.T) {
 				effectRunCount := 0
 				cleanupRunCount := 0
 
-				rt.Run(func() {
+				rt.Run(context.Background(), func() {
 					value, _ := UseState(10)
+					cancel := UseCancel()
 					UseEffect(func() func() {
 						effectRunCount++
 						return func() {
@@ -35,6 +37,7 @@ func TestRuntimeRun(t *testing.T) {
 						}
 					}, []any{value})
 					renders++
+					cancel()
 				})
 
 				return got{
@@ -55,10 +58,13 @@ func TestRuntimeRun(t *testing.T) {
 				effectRunCount := 0
 				cleanupRunCount := 0
 
-				rt.Run(func() {
+				rt.Run(context.Background(), func() {
 					value, set := UseState(10)
+					cancel := UseCancel()
 					if value == 10 {
 						set(value + 1)
+					} else {
+						cancel()
 					}
 					UseEffect(func() func() {
 						effectRunCount++
@@ -87,10 +93,13 @@ func TestRuntimeRun(t *testing.T) {
 				effectRunCount := 0
 				cleanupRunCount := 0
 
-				rt.Run(func() {
+				rt.Run(context.Background(), func() {
 					value, set := UseState(10)
+					cancel := UseCancel()
 					if value == 10 {
 						set(value + 1)
+					} else {
+						cancel()
 					}
 					UseEffect(func() func() {
 						effectRunCount++
@@ -127,10 +136,13 @@ func TestRuntimeCleanup(t *testing.T) {
 	runLog := []string{}
 
 	rt := CreateRuntime()
-	rt.Run(func() {
+	rt.Run(context.Background(), func() {
 		value, set := UseState(10)
+		cancel := UseCancel()
 		if value == 10 {
 			set(value + 1)
+		} else {
+			cancel()
 		}
 		UseEffect(func() func() {
 			runLog = append(runLog, "effect")
@@ -149,5 +161,32 @@ func TestRuntimeCleanup(t *testing.T) {
 		if runLog[i] != want[i] {
 			t.Errorf("log[%d]: want %q; got %q", i, want[i], runLog[i])
 		}
+	}
+}
+
+func TestRuntimeCancelFromParent(t *testing.T) {
+	rt := CreateRuntime()
+	ctx, cancel := context.WithCancel(context.Background())
+
+	renders := 0
+	mounted := make(chan struct{})
+	done := make(chan struct{})
+	go func() {
+		rt.Run(ctx, func() {
+			renders++
+			_, _ = UseState(0)
+			if renders == 1 {
+				close(mounted)
+			}
+		})
+		close(done)
+	}()
+
+	<-mounted
+	cancel()
+	<-done
+
+	if renders != 1 {
+		t.Fatalf("want 1 render before idle+parent cancel, got %d", renders)
 	}
 }

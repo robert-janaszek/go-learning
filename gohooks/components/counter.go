@@ -7,11 +7,12 @@ import (
 
 func Counter() {
 	value, set := hook.UseState(0)
+	cancel := hook.UseCancel()
 
 	if value < 20 {
 		set(value + 1)
 	} else {
-		fmt.Println("exit, bye")
+		cancel()
 	}
 
 	lower10 := min(value, 10)

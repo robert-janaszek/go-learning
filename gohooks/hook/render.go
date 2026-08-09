@@ -1,5 +1,7 @@
 package hook
 
+import "context"
+
 var runtime *Runtime
 
 func (r *Runtime) Render(c Component) {
@@ -26,32 +28,34 @@ func (r *Runtime) Render(c Component) {
 	}
 }
 
-func (r *Runtime) Run(c Component) {
-	i := 0
-	for ; i < 50; i++ {
+func (r *Runtime) Run(ctx context.Context, c Component) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	r.cancel = cancel
+	for i := 0; ; i++ {
 		select {
 		case <-r.updates:
-		default: // TODO: change for asynchronous handling
-			return // as long as there is synchronous set state keep looping
-		}
-		r.Render(c)
+			r.Render(c)
 
-		if i == 0 {
-			r.numberOfHooks = len(r.hookState)
-			r.numberOfEffects = len(r.effectState)
-		}
+			if i == 0 {
+				r.numberOfHooks = len(r.hookState)
+				r.numberOfEffects = len(r.effectState)
+			}
 
-		if r.hookIndex != r.numberOfHooks {
-			panic("hooks order mismatch")
-		}
+			if r.hookIndex != r.numberOfHooks {
+				panic("hooks order mismatch")
+			}
 
-		if r.effectIndex != r.numberOfEffects {
-			panic("effects order mismatch")
-		}
-	}
+			if r.effectIndex != r.numberOfEffects {
+				panic("effects order mismatch")
+			}
 
-	if i == 50 {
-		panic("infinite loop found")
+			if i == 150 { // to be removed with async handling
+				panic("potential infinite loop found")
+			}
+		case <-ctx.Done():
+			return
+		}
 	}
 }
 

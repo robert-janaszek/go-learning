@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"gohooks/components"
 	"gohooks/hook"
 )
 
 func main() {
+	ctx := context.Background()
 	runtime := hook.CreateRuntime()
-	runtime.Run(components.Counter)
+	runtime.Run(ctx, components.Counter)
 	runtime.Unmount()
 }

@@ -1,5 +1,7 @@
 package hook
 
+import "context"
+
 type Runtime struct {
 	hookState       []hookState
 	hookIndex       int
@@ -9,6 +11,7 @@ type Runtime struct {
 	numberOfHooks   int
 	numberOfEffects int
 	updates         chan struct{}
+	cancel          context.CancelFunc
 }
 
 func CreateRuntime() *Runtime {
