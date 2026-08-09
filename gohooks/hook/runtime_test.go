@@ -132,6 +132,67 @@ func TestRuntimeRun(t *testing.T) {
 	}
 }
 
+func TestUseStateRerenderOnChange(t *testing.T) {
+	tests := []struct {
+		name        string
+		initial     int
+		sets        []int // values set during first render
+		wantRenders int
+		wantState   int
+	}{
+		{
+			name:        "same-value-skips-rerender",
+			initial:     10,
+			sets:        []int{10, 10},
+			wantRenders: 1,
+			wantState:   10,
+		},
+		{
+			name:        "different-value-rerenders-same-after-does-not",
+			initial:     10,
+			sets:        []int{11},
+			wantRenders: 2,
+			wantState:   11,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rt := CreateRuntime()
+			renders := 0
+
+			rt.Run(context.Background(), func() {
+				value, set := UseState(tt.initial)
+				cancel := UseCancel()
+				renders++
+
+				if renders == 1 {
+					for _, v := range tt.sets {
+						set(v)
+					}
+					// same-value case: no signal → must cancel or Run blocks
+					if tt.wantRenders == 1 {
+						cancel()
+					}
+					return
+				}
+
+				// after a real update, setting the same value again must not loop
+				set(value)
+				set(value)
+				cancel()
+			})
+
+			if renders != tt.wantRenders {
+				t.Errorf("renders: got %d, want %d", renders, tt.wantRenders)
+			}
+			if got := rt.hookState[0].state.(int); got != tt.wantState {
+				t.Errorf("state: got %d, want %d", got, tt.wantState)
+			}
+		})
+	}
+}
+
 func TestRuntimeCleanup(t *testing.T) {
 	runLog := []string{}
 

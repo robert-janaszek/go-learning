@@ -1,5 +1,7 @@
 package hook
 
+import "reflect"
+
 func UseState[T any](initial T) (T, func(T)) {
 	r := runtime
 	index := r.hookIndex
@@ -8,6 +10,10 @@ func UseState[T any](initial T) (T, func(T)) {
 	}()
 
 	setter := func(state T) {
+		if reflect.DeepEqual(r.hookState[index].state, state) {
+			return
+		}
+
 		r.hookState[index].state = state
 		select {
 		case r.updates <- struct{}{}:
