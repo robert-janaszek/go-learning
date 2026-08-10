@@ -9,7 +9,7 @@ func Counter() {
 	value, set := hook.UseState(0)
 	cancel := hook.UseCancel()
 
-	if value < 20 {
+	if value < 10 {
 		set(value + 1)
 	} else {
 		cancel()

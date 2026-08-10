@@ -1,5 +1,7 @@
 package hook
 
 type hookState struct {
-	state any
+	state                any
+	lastScheduled        bool
+	consecutiveSchedules int
 }

@@ -14,6 +14,8 @@ func UseState[T any](initial T) (T, func(T)) {
 			return
 		}
 
+		r.hookState[index].consecutiveSchedules++
+		r.hookState[index].lastScheduled = true
 		r.hookState[index].state = state
 		select {
 		case r.updates <- struct{}{}:
@@ -22,8 +24,18 @@ func UseState[T any](initial T) (T, func(T)) {
 	}
 
 	if len(r.hookState) <= index {
-		r.hookState = append(r.hookState, hookState{state: initial})
+		r.hookState = append(r.hookState, hookState{
+			state:                initial,
+			lastScheduled:        false,
+			consecutiveSchedules: 0,
+		})
 		return initial, setter
+	}
+
+	if !r.hookState[index].lastScheduled {
+		r.hookState[index].consecutiveSchedules = 0
+	} else {
+		r.hookState[index].lastScheduled = false
 	}
 
 	stateStruct := r.hookState[index]

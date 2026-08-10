@@ -1,6 +1,9 @@
 package hook
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 var runtime *Runtime
 
@@ -26,6 +29,12 @@ func (r *Runtime) Render(c Component) {
 			effect.cleanup = cleanup
 		}
 	}
+
+	for i := range r.hookState {
+		if r.hookState[i].consecutiveSchedules >= 10 {
+			panic(fmt.Sprintf("infinite state update found, hook index %d", i))
+		}
+	}
 }
 
 func (r *Runtime) Run(ctx context.Context, c Component) {
@@ -48,10 +57,6 @@ func (r *Runtime) Run(ctx context.Context, c Component) {
 
 			if r.effectIndex != r.numberOfEffects {
 				panic("effects order mismatch")
-			}
-
-			if i == 150 { // to be removed with async handling
-				panic("potential infinite loop found")
 			}
 		case <-ctx.Done():
 			return
