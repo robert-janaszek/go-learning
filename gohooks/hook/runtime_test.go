@@ -251,3 +251,61 @@ func TestRuntimeCancelFromParent(t *testing.T) {
 		t.Fatalf("want 1 render before idle+parent cancel, got %d", renders)
 	}
 }
+
+func TestRuntimeStateUpdatePanic(t *testing.T) {
+	rt := CreateRuntime()
+	ctx := context.Background()
+	renders := 0
+
+	defer func() {
+		if r := recover(); r != nil {
+			if renders != 10 {
+				t.Fatalf("expected panic after 10 renders, found %d", renders)
+			}
+		} else {
+			t.Fatalf("missing panic for infinite updates")
+		}
+	}()
+
+	rt.Run(ctx, func() {
+		renders++
+		val, set := UseState(0)
+
+		set(val + 1)
+	})
+}
+
+func TestRuntimeStateStorm(t *testing.T) {
+	rt := CreateRuntime()
+	ctx, cancel := context.WithCancel(context.Background())
+	renders := 0
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("unexpected panic")
+		}
+	}()
+
+	cancelled := false
+
+	rt.Run(ctx, func() {
+		renders++
+		val, set := UseState(0)
+		val1, set1 := UseState(1)
+
+		if (val+val1)%2 == 0 {
+			set(val + 1)
+		} else {
+			set1(val1 + 1)
+		}
+
+		if val+val1 > 50 {
+			cancelled = true
+			cancel()
+		}
+	})
+
+	if !cancelled {
+		t.Fatal("expected cancel, but not found")
+	}
+}
