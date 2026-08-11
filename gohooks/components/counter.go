@@ -5,11 +5,11 @@ import (
 	"gohooks/hook"
 )
 
-func Counter() {
+func Counter() hook.Result {
 	value, set := hook.UseState(0)
 	cancel := hook.UseCancel()
 
-	if value < 10 {
+	if value < 5 {
 		set(value + 1)
 	} else {
 		cancel()
@@ -25,4 +25,6 @@ func Counter() {
 			fmt.Printf("cleanup %d\n", value)
 		}
 	}, deps)
+
+	return hook.Result{}
 }

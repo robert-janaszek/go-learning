@@ -27,7 +27,7 @@ func TestRuntimeRun(t *testing.T) {
 				effectRunCount := 0
 				cleanupRunCount := 0
 
-				rt.Run(context.Background(), func() {
+				rt.Run(context.Background(), func() Result {
 					value, _ := UseState(10)
 					cancel := UseCancel()
 					UseEffect(func() func() {
@@ -38,6 +38,8 @@ func TestRuntimeRun(t *testing.T) {
 					}, []any{value})
 					renders++
 					cancel()
+
+					return Result{}
 				})
 
 				return got{
@@ -58,7 +60,7 @@ func TestRuntimeRun(t *testing.T) {
 				effectRunCount := 0
 				cleanupRunCount := 0
 
-				rt.Run(context.Background(), func() {
+				rt.Run(context.Background(), func() Result {
 					value, set := UseState(10)
 					cancel := UseCancel()
 					if value == 10 {
@@ -73,6 +75,8 @@ func TestRuntimeRun(t *testing.T) {
 						}
 					}, []any{value})
 					renders++
+
+					return Result{}
 				})
 
 				return got{
@@ -93,7 +97,7 @@ func TestRuntimeRun(t *testing.T) {
 				effectRunCount := 0
 				cleanupRunCount := 0
 
-				rt.Run(context.Background(), func() {
+				rt.Run(context.Background(), func() Result {
 					value, set := UseState(10)
 					cancel := UseCancel()
 					if value == 10 {
@@ -108,6 +112,8 @@ func TestRuntimeRun(t *testing.T) {
 						}
 					}, []any{})
 					renders++
+
+					return Result{}
 				})
 
 				return got{
@@ -161,7 +167,7 @@ func TestUseStateRerenderOnChange(t *testing.T) {
 			rt := CreateRuntime()
 			renders := 0
 
-			rt.Run(context.Background(), func() {
+			rt.Run(context.Background(), func() Result {
 				value, set := UseState(tt.initial)
 				cancel := UseCancel()
 				renders++
@@ -174,13 +180,15 @@ func TestUseStateRerenderOnChange(t *testing.T) {
 					if tt.wantRenders == 1 {
 						cancel()
 					}
-					return
+					return Result{}
 				}
 
 				// after a real update, setting the same value again must not loop
 				set(value)
 				set(value)
 				cancel()
+
+				return Result{}
 			})
 
 			if renders != tt.wantRenders {
@@ -197,7 +205,7 @@ func TestRuntimeCleanup(t *testing.T) {
 	runLog := []string{}
 
 	rt := CreateRuntime()
-	rt.Run(context.Background(), func() {
+	rt.Run(context.Background(), func() Result {
 		value, set := UseState(10)
 		cancel := UseCancel()
 		if value == 10 {
@@ -211,6 +219,8 @@ func TestRuntimeCleanup(t *testing.T) {
 				runLog = append(runLog, "cleanup")
 			}
 		}, []any{value})
+
+		return Result{}
 	})
 	rt.Unmount()
 
@@ -233,12 +243,14 @@ func TestRuntimeCancelFromParent(t *testing.T) {
 	mounted := make(chan struct{})
 	done := make(chan struct{})
 	go func() {
-		rt.Run(ctx, func() {
+		rt.Run(ctx, func() Result {
 			renders++
 			_, _ = UseState(0)
 			if renders == 1 {
 				close(mounted)
 			}
+
+			return Result{}
 		})
 		close(done)
 	}()
@@ -267,11 +279,13 @@ func TestRuntimeStateUpdatePanic(t *testing.T) {
 		}
 	}()
 
-	rt.Run(ctx, func() {
+	rt.Run(ctx, func() Result {
 		renders++
 		val, set := UseState(0)
 
 		set(val + 1)
+
+		return Result{}
 	})
 }
 
@@ -288,7 +302,7 @@ func TestRuntimeStateStorm(t *testing.T) {
 
 	cancelled := false
 
-	rt.Run(ctx, func() {
+	rt.Run(ctx, func() Result {
 		renders++
 		val, set := UseState(0)
 		val1, set1 := UseState(1)
@@ -303,6 +317,8 @@ func TestRuntimeStateStorm(t *testing.T) {
 			cancelled = true
 			cancel()
 		}
+
+		return Result{}
 	})
 
 	if !cancelled {
