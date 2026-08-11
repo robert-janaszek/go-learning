@@ -3,6 +3,7 @@ package hook
 import (
 	"context"
 	"fmt"
+	"strconv"
 )
 
 var runtime *Runtime
@@ -33,13 +34,19 @@ func (r *Runtime) Render(instance *Instance, root Component) {
 	for i := range result.Children {
 		child := result.Children[i]
 
-		inst := instance.children[child.Key]
+		key := child.Key
+
+		if key == "" {
+			key = strconv.Itoa(i)
+		}
+
+		inst := instance.children[key]
 
 		if inst == nil {
 			inst = &Instance{
 				children: make(map[string]*Instance),
 			}
-			instance.children[child.Key] = inst
+			instance.children[key] = inst
 		}
 
 		r.Render(inst, result.Children[i].Component)
