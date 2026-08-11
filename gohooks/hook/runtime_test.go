@@ -50,7 +50,8 @@ func TestRuntimeRun(t *testing.T) {
 					cleanupRunCount: cleanupRunCount,
 				}
 			},
-			want: got{renders: 1, hookCount: 1, state: 10, effectRunCount: 1, cleanupRunCount: 0},
+			// +1 cleanup from Unmount on ctx.Done
+			want: got{renders: 1, hookCount: 1, state: 10, effectRunCount: 1, cleanupRunCount: 1},
 		},
 		{
 			name: "one-state-update-with-effect",
@@ -87,7 +88,8 @@ func TestRuntimeRun(t *testing.T) {
 					cleanupRunCount: cleanupRunCount,
 				}
 			},
-			want: got{renders: 2, hookCount: 1, state: 11, effectRunCount: 2, cleanupRunCount: 1},
+			// deps cleanup + Unmount cleanup
+			want: got{renders: 2, hookCount: 1, state: 11, effectRunCount: 2, cleanupRunCount: 2},
 		},
 		{
 			name: "one-state-update",
@@ -124,7 +126,8 @@ func TestRuntimeRun(t *testing.T) {
 					cleanupRunCount: cleanupRunCount,
 				}
 			},
-			want: got{renders: 2, hookCount: 1, state: 11, effectRunCount: 1, cleanupRunCount: 0},
+			// empty deps: only Unmount cleanup
+			want: got{renders: 2, hookCount: 1, state: 11, effectRunCount: 1, cleanupRunCount: 1},
 		},
 	}
 
@@ -222,8 +225,8 @@ func TestRuntimeCleanup(t *testing.T) {
 
 		return Result{}
 	})
-	rt.Unmount()
 
+	// mount effect → deps cleanup+effect → Unmount cleanup
 	want := []string{"effect", "cleanup", "effect", "cleanup"}
 	if len(runLog) != len(want) {
 		t.Fatalf("wanted len = %d; got %d (%v)", len(want), len(runLog), runLog)
@@ -233,6 +236,215 @@ func TestRuntimeCleanup(t *testing.T) {
 			t.Errorf("log[%d]: want %q; got %q", i, want[i], runLog[i])
 		}
 	}
+}
+
+func TestTreeRemoveChildRunsCleanup(t *testing.T) {
+	cleanups := map[string]int{}
+	lastState := map[string]int{}
+
+	makeChild := func(id string) Component {
+		return func() Result {
+			v, set := UseState(0)
+			UseEffect(func() func() {
+				return func() {
+					cleanups[id]++
+				}
+			}, []any{})
+			if v == 0 {
+				set(1)
+			}
+			lastState[id] = v
+			return Result{}
+		}
+	}
+
+	rt := CreateRuntime()
+	rt.Run(context.Background(), func() Result {
+		phase, setPhase := UseState(0)
+		cancel := UseCancel()
+
+		a := Element{Key: "a", Component: makeChild("a")}
+		b := Element{Key: "b", Component: makeChild("b")}
+		c := Element{Key: "c", Component: makeChild("c")}
+
+		switch phase {
+		case 0:
+			setPhase(1)
+			return Result{Children: []Element{a, b, c}}
+		case 1:
+			setPhase(2)
+			// drop middle child — should Unmount b before rendering a,c
+			return Result{Children: []Element{a, c}}
+		default:
+			cancel()
+			return Result{Children: []Element{a, c}}
+		}
+	})
+
+	if cleanups["b"] != 1 {
+		t.Fatalf("child b cleanup: want 1 (removed from tree), got %d (%v)", cleanups["b"], cleanups)
+	}
+	// a and c cleaned on final root Unmount
+	if cleanups["a"] != 1 || cleanups["c"] != 1 {
+		t.Fatalf("want a=1 c=1 final unmount cleanups, got %v", cleanups)
+	}
+	// surviving children kept state through the removal frame
+	if lastState["a"] != 1 || lastState["c"] != 1 {
+		t.Fatalf("want a,c state 1 after surviving remove, got %v", lastState)
+	}
+	if _, ok := lastState["b"]; ok && lastState["b"] != 0 && lastState["b"] != 1 {
+		t.Fatalf("unexpected last state for b: %v", lastState["b"])
+	}
+}
+
+func TestTreeRootUnmountCleansAllChildren(t *testing.T) {
+	cleanups := 0
+
+	child := func() Result {
+		UseEffect(func() func() {
+			return func() {
+				cleanups++
+			}
+		}, []any{})
+		return Result{}
+	}
+
+	rt := CreateRuntime()
+	rt.Run(context.Background(), func() Result {
+		step, setStep := UseState(0)
+		cancel := UseCancel()
+
+		if step == 0 {
+			setStep(1)
+			return Result{Children: []Element{
+				{Key: "x", Component: child},
+				{Key: "y", Component: child},
+			}}
+		}
+
+		cancel()
+		return Result{Children: []Element{
+			{Key: "x", Component: child},
+			{Key: "y", Component: child},
+		}}
+	})
+
+	if cleanups != 2 {
+		t.Fatalf("want 2 child cleanups on root Unmount, got %d", cleanups)
+	}
+}
+
+func TestTreeSiblingStateIsolation(t *testing.T) {
+	left, right := -1, -1
+
+	rt := CreateRuntime()
+	rt.Run(context.Background(), func() Result {
+		step, setStep := UseState(0)
+		cancel := UseCancel()
+
+		leftChild := Element{
+			Key: "left",
+			Component: func() Result {
+				v, set := UseState(0)
+				if v == 0 {
+					set(7)
+				}
+				left = v
+				return Result{}
+			},
+		}
+		rightChild := Element{
+			Key: "right",
+			Component: func() Result {
+				v, set := UseState(0)
+				if v == 0 {
+					set(9)
+				}
+				right = v
+				return Result{}
+			},
+		}
+
+		if step == 0 {
+			setStep(1)
+			return Result{Children: []Element{leftChild, rightChild}}
+		}
+		cancel()
+		return Result{Children: []Element{leftChild, rightChild}}
+	})
+
+	if left != 7 || right != 9 {
+		t.Fatalf("want independent child state left=7 right=9, got left=%d right=%d", left, right)
+	}
+}
+
+func TestTreeReorderWithAndWithoutKeys(t *testing.T) {
+	t.Run("with keys state follows identity", func(t *testing.T) {
+		var order []int
+
+		child := func(initial int) Component {
+			return func() Result {
+				v, _ := UseState(initial)
+				order = append(order, v)
+				return Result{}
+			}
+		}
+
+		rt := CreateRuntime()
+		rt.Run(context.Background(), func() Result {
+			step, setStep := UseState(0)
+			cancel := UseCancel()
+			a := Element{Key: "a", Component: child(10)}
+			b := Element{Key: "b", Component: child(20)}
+
+			order = nil
+			if step == 0 {
+				setStep(1)
+				return Result{Children: []Element{a, b}}
+			}
+			cancel()
+			// swap order; keys should keep 10 on a and 20 on b
+			return Result{Children: []Element{b, a}}
+		})
+
+		if len(order) != 2 || order[0] != 20 || order[1] != 10 {
+			t.Fatalf("want render order values [20 10] after keyed swap, got %v", order)
+		}
+	})
+
+	t.Run("without keys state follows index", func(t *testing.T) {
+		var order []int
+
+		child := func(initial int) Component {
+			return func() Result {
+				v, _ := UseState(initial)
+				order = append(order, v)
+				return Result{}
+			}
+		}
+
+		rt := CreateRuntime()
+		rt.Run(context.Background(), func() Result {
+			step, setStep := UseState(0)
+			cancel := UseCancel()
+			// empty Key → refineKey falls back to index
+			first := Element{Component: child(10)}
+			second := Element{Component: child(20)}
+
+			order = nil
+			if step == 0 {
+				setStep(1)
+				return Result{Children: []Element{first, second}}
+			}
+			cancel()
+			// swap components; index slots keep old state (10 stays at i:0)
+			return Result{Children: []Element{second, first}}
+		})
+
+		if len(order) != 2 || order[0] != 10 || order[1] != 20 {
+			t.Fatalf("want index-stable values [10 20] after keyless swap, got %v", order)
+		}
+	})
 }
 
 func TestRuntimeCancelFromParent(t *testing.T) {

@@ -9,6 +9,5 @@ import (
 func main() {
 	ctx := context.Background()
 	runtime := hook.CreateRuntime()
-	runtime.Run(ctx, components.Counter)
-	runtime.Unmount()
+	runtime.Run(ctx, components.NestedCounter)
 }

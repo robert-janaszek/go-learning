@@ -39,6 +39,18 @@ func (r *Runtime) Render(instance *Instance, root Component) {
 		panic("effects order mismatch")
 	}
 
+	alive := make(map[string]struct{}, len(result.Children))
+	for i, child := range result.Children {
+		alive[refineKey(child.Key, i)] = struct{}{}
+	}
+
+	for key, child := range instance.children {
+		if _, ok := alive[key]; !ok {
+			r.Unmount(child)
+			delete(instance.children, key)
+		}
+	}
+
 	for i := range result.Children {
 		child := result.Children[i]
 		key := refineKey(child.Key, i)
@@ -101,20 +113,26 @@ func (r *Runtime) Run(ctx context.Context, root Component) {
 		case <-r.updates:
 			r.Render(&instance, root)
 		case <-ctx.Done():
+			r.Unmount(&instance)
 			return
 		}
 	}
 }
 
-func (r *Runtime) Unmount() {
-	for i := range r.effectState {
-		effect := &r.effectState[i]
+func (r *Runtime) Unmount(instance *Instance) {
+	for _, child := range instance.children {
+		r.Unmount(child)
+	}
+
+	for i := range instance.effectState {
+		effect := &instance.effectState[i]
 
 		if effect.cleanup != nil {
 			effect.cleanup()
 		}
 	}
 
-	r.hookState = nil
-	r.effectState = nil
+	instance.effectState = nil
+	instance.hookState = nil
+	instance.children = nil
 }
