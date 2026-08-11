@@ -8,6 +8,14 @@ import (
 
 var runtime *Runtime
 
+func refineKey(key string, index int) string {
+	if key == "" {
+		return "i:" + strconv.Itoa(index)
+	}
+
+	return "k:" + key
+}
+
 func (r *Runtime) Render(instance *Instance, root Component) {
 	r.effectState = instance.effectState
 	r.hookState = instance.hookState
@@ -33,12 +41,7 @@ func (r *Runtime) Render(instance *Instance, root Component) {
 
 	for i := range result.Children {
 		child := result.Children[i]
-
-		key := child.Key
-
-		if key == "" {
-			key = strconv.Itoa(i)
-		}
+		key := refineKey(child.Key, i)
 
 		inst := instance.children[key]
 
