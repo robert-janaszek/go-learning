@@ -2,6 +2,12 @@ package hook
 
 import "reflect"
 
+// UseSelect caches the selected slice T for this hook slot.
+// Today it only compares during Render — it does not skip component renders by itself.
+//
+// TODO: add a subscribable store (alongside the component tree). On store notify,
+// recompute get+selectFn outside c(); schedule Render only when T changed.
+// Persist get/selectFn (and instance) on the slot for subscribe/unsubscribe on mount/unmount.
 func UseSelect[S, T any](get func() S, selectFn func(s S) T) T {
 	r := runtime
 	index := r.hookIndex
@@ -22,10 +28,5 @@ func UseSelect[S, T any](get func() S, selectFn func(s S) T) T {
 	}
 
 	r.hookState[index].state = val
-	// select { // TODO: to be added when there is tree of components
-	// case r.updates <- struct{}{}:
-	// default:
-	// }
-
 	return val
 }
