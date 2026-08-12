@@ -84,7 +84,7 @@ func (m *Memory) Dump(start, end Addr) string {
 	builder := strings.Builder{}
 
 	for i := refinedStart; i < endClamped; i = i + WordSize {
-		_, err := fmt.Fprintf(&builder, "%04x: ", i)
+		_, err := fmt.Fprintf(&builder, "%04x (%d): ", i, i)
 		if err != nil {
 			return ""
 		}

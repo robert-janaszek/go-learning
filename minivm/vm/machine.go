@@ -8,12 +8,17 @@ import (
 type VM struct {
 	mem *Memory
 	sp  Addr
+	Heap
 }
 
 func NewVM(mem *Memory) *VM {
 	return &VM{
 		mem: mem,
 		sp:  Addr(mem.Size()),
+		Heap: Heap{
+			heapStart: 0x40,
+			heapBrk:   0x40,
+		},
 	}
 }
 
@@ -21,7 +26,7 @@ func (v *VM) Push(value uint32) error {
 	addr := v.sp - WordSize
 
 	if addr <= 0 {
-		return errors.New("out of memory")
+		return OutOfMemoryErr
 	}
 
 	err := v.mem.validateAddress(addr)

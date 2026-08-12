@@ -20,6 +20,14 @@
       "cwd": "${workspaceFolder}/gohooks"
     },
     {
+      "name": "Debug minivm",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/minivm",
+      "cwd": "${workspaceFolder}/minivm"
+    },
+    {
       "name": "Debug current test file",
       "type": "go",
       "request": "launch",
