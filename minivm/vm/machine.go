@@ -54,3 +54,22 @@ func (v *VM) Pop() (uint32, error) {
 
 	return binary.LittleEndian.Uint32(v.mem.data[addr : addr+WordSize]), nil
 }
+
+func (v *VM) Peek() (uint32, error) {
+	addr := v.sp
+	if addr+WordSize > Addr(v.mem.Size()) {
+		return 0, errors.New("cannot peek from empty stack")
+	}
+
+	err := v.mem.validateAddress(addr)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return binary.LittleEndian.Uint32(v.mem.data[addr : addr+WordSize]), nil
+}
+
+func (v *VM) StackDepth() int {
+	return (v.mem.Size() - int(v.sp)) / WordSize
+}
