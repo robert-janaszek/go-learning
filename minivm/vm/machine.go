@@ -73,3 +73,47 @@ func (v *VM) Peek() (uint32, error) {
 func (v *VM) StackDepth() int {
 	return (v.mem.Size() - int(v.sp)) / WordSize
 }
+
+func (v *VM) LoadIndirect() error {
+	addr, err := v.Pop()
+
+	if err != nil {
+		return err
+	}
+
+	val, err := v.mem.Load(Addr(addr))
+
+	if err != nil {
+		return err
+	}
+
+	err = v.Push(val)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (v *VM) StoreIndirect() error {
+	val, err := v.Pop()
+
+	if err != nil {
+		return err
+	}
+
+	addr, err := v.Pop()
+
+	if err != nil {
+		return err
+	}
+
+	err = v.mem.Store(Addr(addr), val)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

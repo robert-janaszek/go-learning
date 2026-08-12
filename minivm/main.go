@@ -8,51 +8,47 @@ import (
 func main() {
 	mem := vm.NewMemory(1024)
 
-	err := mem.Store(4, 1023)
-
+	err := mem.Store(8, 123)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	val, err := mem.Load(4)
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Printf("%x\n", val)
-	fmt.Printf("%d\n", val)
-
-	fmt.Println(mem.Dump(0, 14))
-
 	machine := vm.NewVM(mem)
 
-	err = machine.Push(2032)
+	err = machine.Push(8)
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	val, err = machine.Peek()
+	err = machine.LoadIndirect()
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(machine.StackDepth())
-	fmt.Println(val)
+	fmt.Println(mem.Dump(vm.Addr(mem.Size()-8), vm.Addr(mem.Size())))
 
-	val, err = machine.Pop()
-
+	err = machine.Push(64)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(val)
-	fmt.Println(machine.StackDepth())
+	err = machine.Push(34)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = machine.StoreIndirect()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(mem.Dump(64, 68))
+	fmt.Println(mem.Dump(vm.Addr(mem.Size()-8), vm.Addr(mem.Size())))
 }
