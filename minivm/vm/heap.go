@@ -5,7 +5,16 @@ type Heap struct {
 	heapBrk   Addr
 }
 
+// Block layout (bump allocator):
+//
+//	[ size:u32 ][ payload... ]
+//	            ^
+//	            returned Addr
 func (v *VM) Alloc(nbytes uint32) (Addr, error) {
+	if nbytes == 0 {
+		return 0, ErrZeroNbytes
+	}
+
 	rem := nbytes % WordSize
 	nbytesRefined := nbytes
 
