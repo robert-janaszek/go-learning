@@ -23,5 +23,7 @@ func main() {
 	}
 
 	fmt.Printf("%x\n", val)
-	fmt.Printf("%d", val)
+	fmt.Printf("%d\n", val)
+
+	fmt.Println(mem.Dump(0, 14))
 }
