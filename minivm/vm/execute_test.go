@@ -6,20 +6,23 @@ import (
 	"testing"
 )
 
+func mustExecute(t *testing.T, v *VM, code []Instr) {
+	t.Helper()
+	if err := v.Execute(code); err != nil {
+		t.Fatalf("Execute failed: %v (ip=%d sp=%d)", err, v.ip, v.sp)
+	}
+}
+
 func TestExecute_Add40Plus2(t *testing.T) {
 	mem := NewMemory(1024)
 	v := NewVM(mem)
 
-	code := []Instr{
+	mustExecute(t, v, []Instr{
 		{Op: OpPush, Arg: 40},
 		{Op: OpPush, Arg: 2},
 		{Op: OpAdd},
 		{Op: OpHalt},
-	}
-
-	if err := v.Execute(code); err != nil {
-		t.Fatalf("Execute failed: %v", err)
-	}
+	})
 
 	got, err := v.Peek()
 	if err != nil {
@@ -34,37 +37,57 @@ func TestExecute_AllocStoreLoadFree(t *testing.T) {
 	mem := NewMemory(1024)
 	v := NewVM(mem)
 
-	// Alloc 4 → Dup → Push 7 → Store → Dup → Load → leave 7 on stack; Free ptr under it via swap pattern:
-	// After Load stack is [ptr, 7]. Pop 7, Free ptr, Push 7 back for assert.
-	code := []Instr{
+	const scratch Addr = 0x10
+
+	const result Addr = 0x14
+
+	mustExecute(t, v, []Instr{
+		{Op: OpPush, Arg: uint32(scratch)},
 		{Op: OpPush, Arg: 4},
 		{Op: OpAlloc},
+		{Op: OpStore}, // mem[0x10] = ptr
+
+		{Op: OpPush, Arg: uint32(scratch)},
+		{Op: OpLoad},
 		{Op: OpDup},
 		{Op: OpPush, Arg: 7},
-		{Op: OpStore},
-		{Op: OpDup},
+		{Op: OpStore}, // mem[ptr] = 7
+
+		{Op: OpPush, Arg: uint32(result)},
+		{Op: OpPush, Arg: uint32(scratch)},
 		{Op: OpLoad},
+		{Op: OpLoad},
+		{Op: OpStore}, // mem[0x14] = 7 (payload is clobbered by Free's next ptr)
+
+		{Op: OpPush, Arg: uint32(scratch)},
+		{Op: OpLoad},
+		{Op: OpFree},
 		{Op: OpHalt},
-	}
+	})
 
-	if err := v.Execute(code); err != nil {
-		t.Fatalf("Execute failed: %v", err)
-	}
-
-	got, err := v.Pop()
+	ptr, err := mem.Load(scratch)
 	if err != nil {
-		t.Fatalf("Pop value failed: %v", err)
+		t.Fatalf("Load scratch failed: %v", err)
+	}
+
+	got, err := mem.Load(result)
+	if err != nil {
+		t.Fatalf("Load result failed: %v", err)
 	}
 	if got != 7 {
-		t.Fatalf("wanted loaded value 7, got %d", got)
+		t.Fatalf("wanted stored value 7, got %d", got)
 	}
 
-	ptr, err := v.Pop()
+	brk := v.heapBrk
+	reused, err := v.Alloc(4)
 	if err != nil {
-		t.Fatalf("Pop ptr failed: %v", err)
+		t.Fatalf("Alloc after bytecode Free failed: %v", err)
 	}
-	if err := v.Free(Addr(ptr)); err != nil {
-		t.Fatalf("Free failed: %v", err)
+	if reused != Addr(ptr) {
+		t.Fatalf("wanted Free in bytecode to reuse ptr %d, got %d", ptr, reused)
+	}
+	if v.heapBrk != brk {
+		t.Fatalf("wanted heapBrk unchanged at %d, got %d", brk, v.heapBrk)
 	}
 }
 
@@ -85,9 +108,7 @@ func TestExecute_CallRetNested(t *testing.T) {
 		{Op: OpRet},
 	}
 
-	if err := v.Execute(code); err != nil {
-		t.Fatalf("Execute failed: %v", err)
-	}
+	mustExecute(t, v, code)
 
 	if got := v.StackDepth(); got != 0 {
 		t.Fatalf("wanted empty stack after nested Call/Ret, got depth %d", got)
@@ -180,5 +201,99 @@ func TestExecute_UnknownOpcode_ReturnsError(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "unknown opcode") {
 		t.Fatalf("wanted unknown opcode error, got %v", err)
+	}
+}
+
+func TestExecute_Dup(t *testing.T) {
+	mem := NewMemory(64)
+	v := NewVM(mem)
+
+	mustExecute(t, v, []Instr{
+		{Op: OpPush, Arg: 9},
+		{Op: OpDup},
+		{Op: OpHalt},
+	})
+
+	if got := v.StackDepth(); got != 2 {
+		t.Fatalf("wanted StackDepth=2 after Dup, got %d", got)
+	}
+	top, err := v.Pop()
+	if err != nil {
+		t.Fatalf("Pop failed: %v", err)
+	}
+	under, err := v.Pop()
+	if err != nil {
+		t.Fatalf("Pop failed: %v", err)
+	}
+	if top != 9 || under != 9 {
+		t.Fatalf("wanted Dup of 9, got %d and %d", top, under)
+	}
+}
+
+func TestExecute_PushLoop_StackOverflow(t *testing.T) {
+	mem := NewMemory(64)
+	v := NewVM(mem)
+
+	code := make([]Instr, 0, 33)
+	for range 32 {
+		code = append(code, Instr{Op: OpPush, Arg: 1})
+	}
+	code = append(code, Instr{Op: OpHalt})
+
+	err := v.Execute(code)
+	if err == nil {
+		t.Fatal("wanted stack overflow from Push loop, got nil")
+	}
+	if !errors.Is(err, ErrOutOfMemory) {
+		t.Fatalf("wanted ErrOutOfMemory, got %v (ip=%d sp=%d)", err, v.ip, v.sp)
+	}
+	if !strings.Contains(err.Error(), "ip ") {
+		t.Fatalf("wanted ip in error, got %v", err)
+	}
+}
+
+func TestExecute_CallIncrViaScratch(t *testing.T) {
+	mem := NewMemory(1024)
+	v := NewVM(mem)
+
+	// Ret discards callee stack; result goes through reserved 0x10 (same as Program C).
+	mustExecute(t, v, []Instr{
+		{Op: OpPush, Arg: 0x10},
+		{Op: OpPush, Arg: 41},
+		{Op: OpStore},
+		{Op: OpCall, Arg: 7},
+		{Op: OpPush, Arg: 0x10},
+		{Op: OpLoad},
+		{Op: OpHalt},
+		{Op: OpPush, Arg: 0x10},
+		{Op: OpPush, Arg: 0x10},
+		{Op: OpLoad},
+		{Op: OpPush, Arg: 1},
+		{Op: OpAdd},
+		{Op: OpStore},
+		{Op: OpRet},
+	})
+
+	got, err := v.Peek()
+	if err != nil {
+		t.Fatalf("Peek failed: %v", err)
+	}
+	if got != 42 {
+		t.Fatalf("wanted 41+1=42, got %d (sp=%d)", got, v.sp)
+	}
+}
+
+func TestExecute_MissingHalt_ExceedsCode(t *testing.T) {
+	mem := NewMemory(64)
+	v := NewVM(mem)
+
+	err := v.Execute([]Instr{
+		{Op: OpPush, Arg: 1},
+	})
+	if err == nil {
+		t.Fatal("wanted error when program falls off the end, got nil")
+	}
+	if !strings.Contains(err.Error(), "ip 1") {
+		t.Fatalf("wanted ip 1 (past last instr), got %v", err)
 	}
 }
