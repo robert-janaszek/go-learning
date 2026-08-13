@@ -18,6 +18,7 @@ func NewVM(mem *Memory) *VM {
 		Heap: Heap{
 			heapStart: 0x40,
 			heapBrk:   0x40,
+			freeHead:  0x00,
 		},
 	}
 }
@@ -26,7 +27,7 @@ func (v *VM) Push(value uint32) error {
 	addr := v.sp - WordSize
 
 	if addr <= 0 {
-		return OutOfMemoryErr
+		return ErrOutOfMemory
 	}
 
 	err := v.mem.validateAddress(addr)

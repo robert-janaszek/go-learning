@@ -27,4 +27,13 @@ func main() {
 
 	fmt.Printf("second addr: %d\n", addr)
 	fmt.Println(mem.Dump(64, 92))
+
+	err = machine.Free(addr)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("after free")
+	fmt.Println(mem.Dump(64, 92))
 }

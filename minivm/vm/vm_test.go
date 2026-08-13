@@ -83,8 +83,8 @@ func TestVM_DumpShowsValuesAtHighAddresses(t *testing.T) {
 	dump := mem.Dump(0, Addr(mem.Size()))
 
 	// Memory is little-endian, so uint32(1) => bytes: 01 00 00 00.
-	// Dump prints: "%04x: %02x %02x %02x %02x %d\n"
-	if !strings.Contains(dump, "000c: 01 00 00 00 1\n") {
+	// Dump prints: "%04x (%d): %02x %02x %02x %02x %d\n"
+	if !strings.Contains(dump, "000c (12): 01 00 00 00 1\n") {
 		t.Fatalf("expected dump line for addr=000c not found.\nDump:\n%s", dump)
 	}
 }
