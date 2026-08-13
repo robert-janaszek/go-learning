@@ -94,6 +94,12 @@ func (v *VM) StackDepth() int {
 	return (v.mem.Size() - int(v.sp)) / WordSize
 }
 
+func (v *VM) SP() Addr { return v.sp }
+
+func (v *VM) FP() Addr { return v.fp }
+
+func (v *VM) HeapBrk() Addr { return v.heapBrk }
+
 func (v *VM) LoadIndirect() error {
 	addr, err := v.Pop()
 

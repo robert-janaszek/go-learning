@@ -48,7 +48,7 @@ func (v *VM) Execute(code []Instr) error {
 			if err != nil {
 				return withIP(cur, err)
 			}
-			if err = v.Push(a + b); err != nil {
+			if err = v.Push(b + a); err != nil {
 				return withIP(cur, err)
 			}
 		case OpLoad:
