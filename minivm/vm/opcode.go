@@ -10,7 +10,7 @@ const (
 	OpLoad            // pop addr, push mem[addr]
 	OpStore           // pop val, pop addr, mem[addr]=val
 	OpAlloc           // pop nbytes, push ptr
-	OpFree            // pop ptr
+	OpFree            // pop ptr, free(ptr)
 	OpCall            // operand: target ip; nargs already on stack per your convention
 	OpRet             // restore FP/SP; jump to saved return addr
 	OpDup             // duplicate top of stack
