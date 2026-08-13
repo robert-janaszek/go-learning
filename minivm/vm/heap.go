@@ -44,9 +44,13 @@ func blockSize(size uint32) Addr {
 	return Addr(WordSize + size)
 }
 
-// free word pointer:
-// [ free-bit+size][ next | ... ]
-// ^ header        ^ payload
+// Block layout:
+//
+//	[ size:u32 | free:MSB ][ payload... ]
+//	^ header               ^ returned Addr
+//
+// size uses the lower 31 bits; free flag is the MSB (0x80000000).
+// When free, payload[0] stores the next free-list payload Addr (0 = end).
 func (v *VM) Alloc(nbytes uint32) (Addr, error) {
 	if nbytes == 0 {
 		return 0, ErrZeroNbytes
