@@ -6,15 +6,29 @@ import (
 )
 
 type VM struct {
-	mem *Memory
-	sp  Addr
+	mem  *Memory
+	sp   Addr
+	fp   Addr
+	code []Instr
+	ip   int
 	Heap
 }
 
+// Memory layout (single []byte RAM):
+//
+//	low addr                                              high addr
+//	0 ──────────────────────────────────────────────────► Size-1
+//	[ null | reserved… | HEAP → ........ free ........ ← STACK ]
+//	  0      0x04..0x3f   ^heapStart              sp/fp start at Size
+//	                      heapBrk grows up          stack grows down
+//
+// Addr 0 is null (no dereference). Heap and stack share the same Memory;
+// collision when heapBrk would meet sp → OOM / stack overflow.
 func NewVM(mem *Memory) *VM {
 	return &VM{
 		mem: mem,
 		sp:  Addr(mem.Size()),
+		fp:  Addr(mem.Size()),
 		Heap: Heap{
 			heapStart: 0x40,
 			heapBrk:   0x40,

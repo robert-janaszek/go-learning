@@ -9,31 +9,28 @@ func main() {
 	mem := vm.NewMemory(1024)
 	machine := vm.NewVM(mem)
 
-	addr, err := machine.Alloc(5)
+	err := machine.Call(100, 1)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	machine.Push(5)
+
+	err = machine.Call(121, 2)
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Printf("first addr: %d\n", addr)
+	machine.Push(321)
+	machine.Push(4)
 
-	addr, err = machine.Alloc(8)
+	fmt.Println(mem.Dump(992, 1024))
 
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	machine.Ret()
+	machine.Ret()
 
-	fmt.Printf("second addr: %d\n", addr)
-	fmt.Println(mem.Dump(64, 92))
-
-	err = machine.Free(addr)
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("after free")
-	fmt.Println(mem.Dump(64, 92))
+	fmt.Println(machine.StackDepth())
 }
