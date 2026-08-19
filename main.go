@@ -24,7 +24,8 @@ func main() {
 	// days.Day7a()
 	// days.Day7b()
 	// days.Day7c()
-	days.Day7d()
+	// days.Day7d()
+	days.Day7e()
 
 	// result, _ := jsonfixer.Fix(`{"a`)
 	// fmt.Println(result)
